@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import TestRoom from './TestRoom.js';
+import Player from "./Player.js";
 
 class App {
     constructor() {
@@ -14,8 +16,9 @@ class App {
         this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.clock = new THREE.Clock();
 
-        this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        this.scene.add(this.ambientLight);
+        const testRoom = new TestRoom(this);
+
+        this.addUpdatable(new Player(this));
 
         window.addEventListener('resize', () => this.windowResize());
         this.windowResize();
@@ -36,7 +39,7 @@ class App {
 
     addUpdatable(obj) {
         if (typeof obj?.update === 'function') {
-            this.updatables.add(obj);
+            this.updatables.push(obj);
         } else {
             console.warn('Object invalid for updatables; no update method:', obj);
         }
