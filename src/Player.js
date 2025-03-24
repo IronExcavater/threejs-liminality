@@ -1,13 +1,18 @@
-import * as THREE from 'three';
-import Controls from "./Controls.js";
+import * as CANNON from 'cannon-es';
+import {world, addUpdatable} from './app.js';
+import Controls from './Controls.js';
 
 class Player {
-    constructor(app) {
-        this.object = new THREE.Object3D();
-        this.object.add(app.camera);
-        app.scene.add(this.object);
+    constructor() {
+        this.body = new CANNON.Body({
+            mass: 1,
+            shape: new CANNON.Sphere(0.5),
+            linearDamping: 0.99,
+        });
+        world.addBody(this.body);
 
-        this.controls = new Controls(this.object);
+        this.controls = new Controls(this.body);
+        addUpdatable(this);
     }
 
     update(delta) {
