@@ -5,7 +5,6 @@ import Player from "./Player.js";
 import './utils.js'
 
 const updatables = [];
-export const collidables = [];
 const clock = new THREE.Clock();
 
 // Core three.js components
@@ -59,22 +58,5 @@ export function removeUpdatable(obj) {
         updatables.splice(index, 1);
     } else {
         console.warn('Object not found in updatables:', obj);
-    }
-}
-
-export function addCollidable(obj) {
-    if (obj instanceof THREE.Mesh) {
-        collidables.push(obj);
-    } else {
-        console.warn('Object invalid for collidable; not a THREE.Mesh:', obj);
-    }
-}
-
-export function removeCollidable(obj) {
-    const index = collidables.indexOf(obj);
-    if (index > -1) {
-        collidables.splice(index, 1);
-    } else {
-        console.warn('Object not found in collidables:', obj);
     }
 }

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import {scene, world, addCollidable} from './app.js';
+import {scene, world} from './app.js';
 
 class TestRoom {
     constructor() {
@@ -37,7 +37,6 @@ class TestRoom {
         const wall = new THREE.Mesh(wallGeo, wallMat);
         wall.position.set(0, 0, -3);
         wall.receiveShadow = true;
-        addCollidable(wall);
         scene.add(wall);
 
         const wallShape = new CANNON.Plane();
