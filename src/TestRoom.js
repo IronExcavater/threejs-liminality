@@ -1,60 +1,41 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import {scene, world} from './app.js';
+import {BoxObject, PlaneObject} from "./Object.js";
 
 class TestRoom {
     constructor() {
-        // Floor
-        const floorGeo = new THREE.PlaneGeometry(6, 6);
-        const floorMat = new THREE.MeshStandardMaterial(({
+        const floor = new PlaneObject({
             color: 0x8a7d65,
-        }));
-        const floor = new THREE.Mesh(floorGeo, floorMat);
-        floor.rotation.x = -Math.PI / 2;
-        floor.position.set(0, -1, 0);
-        floor.receiveShadow = true;
-        scene.add(floor);
-
-        const floorShape = new CANNON.Plane();
-        const floorBody = new CANNON.Body({
-            mass: 0,
-            position: new CANNON.Vec3(0, -1, 0),
-            shape: floorShape,
+            position: new THREE.Vector3(0, -1, 0),
+            rotation: new THREE.Euler(-Math.PI/2, 0, 0),
         });
-        floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
-        world.addBody(floorBody);
 
-        const roof = floor.clone(true);
-        roof.rotation.x = Math.PI / 2;
-        roof.position.set(0, 1, 0);
-        scene.add(roof);
-
-        // Wall
-        const wallGeo = new THREE.PlaneGeometry(6, 2);
-        const wallMat = new THREE.MeshStandardMaterial(({
-            color: 0xebd8b7,
-        }));
-        const wall = new THREE.Mesh(wallGeo, wallMat);
-        wall.position.set(0, 0, -3);
-        wall.receiveShadow = true;
-        scene.add(wall);
-
-        const wallShape = new CANNON.Plane();
-        const wallBody = new CANNON.Body({
-            mass: 0,
-            position: new CANNON.Vec3(0, 0, -3),
-            shape: wallShape,
+        const roof = new PlaneObject({
+            color: 0x8a7d65,
+            position: new THREE.Vector3(0, 1, 0),
+            rotation: new THREE.Euler(Math.PI/2, 0, 0),
         });
-        world.addBody(wallBody);
+
+        const wallPositions = [
+            new THREE.Vector3(0, 0, -3),
+            new THREE.Vector3(3, 0, 0),
+            new THREE.Vector3(0, 0, 3),
+            new THREE.Vector3(-3, 0, 0),
+        ]
+
+        for (let i = 0; i < 4; i++) {
+            const wall = new BoxObject({
+                size: new THREE.Vector3(6, 2, 0.1),
+                color: 0xebd8b7,
+                position: wallPositions[i],
+                rotation: new THREE.Euler(0, Math.PI/2 * i, 0),
+            });
+        }
 
         // Ambient Light
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.05);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.01);
         scene.add(ambientLight);
-
-        // Directional Light
-        const directionalLight = new THREE.PointLight(0xffffff, 2, 5);
-        directionalLight.position.set(0, 0.9, -1);
-        scene.add(directionalLight);
     }
 }
 

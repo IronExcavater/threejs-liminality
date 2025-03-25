@@ -10,7 +10,7 @@ class Player {
             speed: 10,
             jump: 4,
             friction: 4,
-            offset: new THREE.Vector3(0, 0.5, 0),
+            offset: new THREE.Vector3(0, 0.7, 0),
         };
 
         this.contactNormal = new CANNON.Vec3();
@@ -18,6 +18,7 @@ class Player {
         this.body = new CANNON.Body({
             mass: 5,
             shape: new CANNON.Sphere(0.5),
+            position: new CANNON.Vec3(0, -0.5, 0),
         });
         world.addBody(this.body);
 
@@ -48,7 +49,7 @@ class Player {
             this.lookControls.lock();
         });
 
-        this.flashlight = new THREE.SpotLight(0xffffff, 3, 5, Math.PI / 5, 1.5, 2);
+        this.flashlight = new THREE.SpotLight(0xffffff, 1, 6, Math.PI / 3, 1, 2);
         scene.add(this.flashlight);
         scene.add(this.flashlight.target);
 
