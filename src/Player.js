@@ -5,9 +5,8 @@ import Controls from './Controls.js';
 class Player {
     constructor() {
         this.body = new CANNON.Body({
-            mass: 1,
+            mass: 5,
             shape: new CANNON.Sphere(0.5),
-            linearDamping: 0.99,
         });
         world.addBody(this.body);
 

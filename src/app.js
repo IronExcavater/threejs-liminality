@@ -22,11 +22,9 @@ window.addEventListener('resize', () => windowResize());
 windowResize();
 
 // Core cannon.js components
-export const world = new CANNON.World();
-world.gravity.set(0, -9.81, 0);
-world.broadphase = new CANNON.NaiveBroadphase();
-world.solver = new CANNON.GSSolver();
-world.defaultContactMaterial.friction = 0.4;
+export const world = new CANNON.World({
+    gravity: new CANNON.Vec3(0, -9.81, 0),
+});
 
 // Level components
 new Player();
@@ -39,7 +37,7 @@ function windowResize() {
 }
 
 function update(delta) {
-    world.step(1 / 60, delta, 3);
+    world.fixedStep();
     for (const obj of updatables) obj.update(delta);
     renderer.render(scene, camera);
 }

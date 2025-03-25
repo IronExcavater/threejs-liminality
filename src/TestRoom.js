@@ -20,7 +20,7 @@ class TestRoom {
             mass: 0,
             position: new CANNON.Vec3(0, -1, 0),
             shape: floorShape,
-        })
+        });
         floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
         world.addBody(floorBody);
 
@@ -44,7 +44,7 @@ class TestRoom {
             mass: 0,
             position: new CANNON.Vec3(0, 0, -3),
             shape: wallShape,
-        })
+        });
         world.addBody(wallBody);
 
         // Ambient Light
