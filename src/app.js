@@ -3,6 +3,7 @@ import * as CANNON from 'cannon-es';
 import TestRoom from './TestRoom.js';
 import Player from "./Player.js";
 import './utils.js'
+import CannonDebugRenderer from "./CannonDebugRenderer.js";
 
 const updatables = [];
 const clock = new THREE.Clock();
@@ -24,10 +25,19 @@ windowResize();
 // Core cannon.js components
 export const world = new CANNON.World({
     gravity: new CANNON.Vec3(0, -9.81, 0),
+    frictionGravity: CANNON.Vec3.zero,
 });
 
+const cannonDebugRenderer = new CannonDebugRenderer(scene, world);
+
 // Level components
-new Player();
+new Player({
+    walkSpeed: 8,
+    jumpStrength: 5,
+    groundFriction: 4,
+    width: 0.5,
+    height: 1,
+});
 new TestRoom(); // Temp
 
 function windowResize() {
@@ -39,6 +49,7 @@ function windowResize() {
 function update(delta) {
     world.fixedStep();
     for (const obj of updatables) obj.update(delta);
+    //cannonDebugRenderer.update();
     renderer.render(scene, camera);
 }
 

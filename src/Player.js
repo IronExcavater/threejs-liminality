@@ -5,21 +5,32 @@ import {world, addUpdatable, camera, scene} from './app.js';
 import {getKey, getKeys} from "./input.js";
 
 class Player {
-    constructor() {
-        this.params = {
-            speed: 10,
-            jump: 4,
-            friction: 4,
-            offset: new THREE.Vector3(0, 0.7, 0),
-        };
+    constructor({
+        walkSpeed, jumpStrength, groundFriction,
+        width, height,
+    }) {
+        this.contactNormal = new CANNON.Vec3();
+        this.isGrounded = false;
+        this.walkSpeed = walkSpeed;
+        this.jumpStrength = jumpStrength;
+        this.groundFriction = groundFriction;
+        this.cameraOffset = height-width/2;
 
         this.contactNormal = new CANNON.Vec3();
         this.isGrounded = false;
         this.body = new CANNON.Body({
             mass: 5,
-            shape: new CANNON.Sphere(0.5),
-            position: new CANNON.Vec3(0, -0.5, 0),
+            position: new CANNON.Vec3(0, 0, 0),
+            fixedRotation: true,
         });
+
+        const cylinder = new CANNON.Cylinder(width/2, width/2, height-width);
+        const topSphere = new CANNON.Sphere(width/2);
+        const bottomSphere = new CANNON.Sphere(width/2);
+
+        this.body.addShape(cylinder, new CANNON.Vec3(0, width+(height-width*2)/2, 0));
+        this.body.addShape(topSphere, new CANNON.Vec3(0, this.cameraOffset, 0));
+        this.body.addShape(bottomSphere, new CANNON.Vec3(0, width/2, 0));
         world.addBody(this.body);
 
         this.body.addEventListener('collide', (e) => {
@@ -68,9 +79,9 @@ class Player {
             // Get max velocity by multiply direction by speed depending on conditions
             const isSprinting = getKeys(['ShiftLeft', 'ShiftRight']);
             const velocity = new THREE.Vector3(
-                inputDirection.x * this.params.speed * 0.8,
+                inputDirection.x * this.walkSpeed * 0.8,
                 0,
-                inputDirection.z * this.params.speed * (inputDirection.z < 0 ? (isSprinting ? 1.5 : 1) : 0.5)
+                inputDirection.z * this.walkSpeed * (inputDirection.z < 0 ? (isSprinting ? 1.5 : 1) : 0.5)
             );
 
             velocity.applyQuaternion(this.object.quaternion);
@@ -78,15 +89,15 @@ class Player {
             this.body.velocity.x += velocity.x * delta;
             this.body.velocity.z += velocity.z * delta;
 
-            this.body.velocity.lerp(CANNON.Vec3.zero, this.params.friction * delta, this.body.velocity);
+            this.body.velocity.lerp(CANNON.Vec3.zero, this.groundFriction * delta, this.body.velocity);
 
             if (getKey('Space')) {
-                this.body.velocity.y = this.params.jump;
+                this.body.velocity.y = this.jumpStrength;
                 this.isGrounded = false;
             }
         }
 
-        this.object.position.copy(this.body.position.toThree().add(this.params.offset));
+        this.object.position.copy(this.body.position.toThree().add(new THREE.Vector3(0, this.cameraOffset, 0)));
 
         if (getKey('KeyF', true)) {
             this.flashlight.visible = !this.flashlight.visible;

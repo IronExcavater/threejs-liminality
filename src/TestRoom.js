@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import * as CANNON from 'cannon-es';
-import {scene, world} from './app.js';
+import {scene} from './app.js';
 import {BoxObject, PlaneObject} from "./Object.js";
 
 class TestRoom {
@@ -34,7 +33,7 @@ class TestRoom {
         }
 
         // Ambient Light
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.01);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
         scene.add(ambientLight);
     }
 }
