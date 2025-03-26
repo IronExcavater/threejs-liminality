@@ -7,8 +7,17 @@ class ProcGen {
     /*
     initialise class
         dungeon parameters (width, height, roomSize, numRoom)
-    
     */
+
+    constructor (width, height, minRoomSize, maxRoomSize, numRoom) {
+        if (ProcGenDungeon.instance) return ProcGenDungeon.instance; // Prevent new instances
+        this.height = height;
+        this.width = width;
+        this.minRoomSize = minRoomSize;
+        this.maxRoomSize = maxRoomSize;
+        this.numRoom = numRoom;
+        ProcGenDungeon.instance = this; // Store as singleton // had nightmares with instances, can remove if comfortable.
+    }
 
     /* 
     generateDungeon()
@@ -23,6 +32,9 @@ class ProcGen {
     initialiseGrid()
         2d array representing the dungeon.
     */
+   initialiseGrid() {
+        var mapArray = [];
+   }
 
     /*
     placeRooms()
