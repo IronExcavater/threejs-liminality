@@ -1,3 +1,1 @@
-import App from './src/App.js';
-
-const app = new App();
+import './src/app.js';
