@@ -42,6 +42,7 @@ class ProcGen {
             generate random size & position within constraints
             check for overlap
             if overlap, retry placement
+            if allow overlap, delete overlapping walls
             mark as occupied in grid
      */
 
