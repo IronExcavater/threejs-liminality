@@ -31,10 +31,6 @@ class TestRoom {
                 rotation: new THREE.Euler(0, Math.PI/2 * i, 0),
             });
         }
-
-        // Ambient Light
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
-        scene.add(ambientLight);
     }
 }
 

@@ -1,12 +1,24 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import TestRoom from './TestRoom.js';
-import Player from "./Player.js";
+import Player from './Player.js';
+import CannonDebugRenderer from './CannonDebugRenderer.js';
+import {updateConsole} from './console.js'
 import './utils.js'
-import CannonDebugRenderer from "./CannonDebugRenderer.js";
+
+import '/styles/app.css';
 
 const updatables = [];
 const clock = new THREE.Clock();
+
+export const ids = new Map([
+    ['Player', 100],
+]);
+
+export const collisionFilters = new Map([ // Must be powers of 2
+    ['World', 1],
+    ['Player', 2],
+])
 
 // Core three.js components
 export const scene = new THREE.Scene();
@@ -28,17 +40,27 @@ export const world = new CANNON.World({
     frictionGravity: CANNON.Vec3.zero,
 });
 
-const cannonDebugRenderer = new CannonDebugRenderer(scene, world);
+// Debuggers
+export const wireframeRenderer = new CannonDebugRenderer(scene, world);
+export const debug = {
+    noclip: false,
+    wireframe: false,
+    fullbright: false,
+};
 
 // Level components
-new Player({
+export const player = new Player({
     walkSpeed: 8,
-    jumpStrength: 5,
+    jumpStrength: 4,
     groundFriction: 4,
     width: 0.5,
-    height: 1,
+    height: 1.2,
 });
-new TestRoom(); // Temp
+
+export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
+scene.add(ambientLight);
+
+new TestRoom();
 
 function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -48,8 +70,8 @@ function windowResize() {
 
 function update(delta) {
     world.fixedStep();
+    updateConsole();
     for (const obj of updatables) obj.update(delta);
-    //cannonDebugRenderer.update();
     renderer.render(scene, camera);
 }
 

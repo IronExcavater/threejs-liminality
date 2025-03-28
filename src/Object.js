@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import {scene, world} from './app.js';
+import {collisionFilters, scene, world} from './app.js';
 import './utils.js';
 
 export class Object {
@@ -18,6 +18,8 @@ export class Object {
         this.body = new CANNON.Body({
             mass: mass,
             shape: shape,
+            collisionFilterGroup: collisionFilters.get('World'),
+            collisionFilterMask: collisionFilters.get('World') | collisionFilters.get('Player'),
         });
         world.addBody(this.body);
 
