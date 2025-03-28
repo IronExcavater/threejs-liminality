@@ -10,13 +10,13 @@ class ProcGen {
     */
 
     constructor (width, height, minRoomSize, maxRoomSize, numRoom) {
-        if (ProcGenDungeon.instance) return ProcGenDungeon.instance; // Prevent new instances
+        //if (ProcGenDungeon.instance) return ProcGenDungeon.instance; // Prevent new instances
         this.height = height;
         this.width = width;
         this.minRoomSize = minRoomSize;
         this.maxRoomSize = maxRoomSize;
         this.numRoom = numRoom;
-        ProcGenDungeon.instance = this; // Store as singleton // had nightmares with instances, can remove if comfortable.
+        //ProcGenDungeon.instance = this; // Store as singleton // had nightmares with instances, can remove if comfortable.
     }
 
     /* 
@@ -43,7 +43,9 @@ class ProcGen {
             check for overlap
             if overlap, retry placement
             if allow overlap, delete overlapping walls
+            add room into mapArray
             mark as occupied in grid
+
      */
 
     /*
