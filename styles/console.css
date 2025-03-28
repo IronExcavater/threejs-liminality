@@ -1,0 +1,22 @@
+#console {
+    position: fixed;
+    display: none;
+    width: 33.3%;
+    max-height: 20%;
+    background: rgba(0, 0, 0, 0.4);
+    color: white;
+    overflow: hidden;
+    flex-direction: column;
+    padding: 5px;
+    overflow-y: auto;
+    word-wrap: break-word;
+}
+
+#console input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: inherit;
+    font-size: inherit;
+    text-transform: lowercase;
+}
