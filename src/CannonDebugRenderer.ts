@@ -8,8 +8,10 @@
 // - added support for CANNON.Cylinder
 // - Updated to use cannon-es
 
-import * as THREE from 'three'
-import * as CANNON from 'cannon-es'
+import * as THREE from 'three';
+import * as CANNON from 'cannon-es';
+// @ts-ignore
+import {ids} from './app.js';
 
 export default class CannonDebugRenderer {
     public scene: THREE.Scene
@@ -54,7 +56,7 @@ export default class CannonDebugRenderer {
     this._particleGeometry.setFromPoints([new THREE.Vector3(0, 0, 0)])
 }
 
-public update() {
+public wireframe(enabled = true) {
     const bodies: CANNON.Body[] = this.world.bodies
     const meshes: THREE.Mesh[] | THREE.Points[] = this._meshes
     const shapeWorldPosition: CANNON.Vec3 = this.tmpVec0
@@ -62,8 +64,20 @@ public update() {
 
     let meshIndex = 0
 
+    if (!enabled) {
+        for (let i = 0; i < meshes.length; i++) {
+            const mesh: THREE.Mesh | THREE.Points = meshes[i];
+            if (mesh) {
+                this.scene.remove(mesh);
+            }
+        }
+        meshes.length = 0;
+        return;
+    }
+
     for (let i = 0; i !== bodies.length; i++) {
         const body = bodies[i]
+        if (body.id === ids.get('Player')) continue;
 
         for (let j = 0; j !== body.shapes.length; j++) {
             const shape = body.shapes[j]
