@@ -1,52 +1,63 @@
-import * as THREE from 'three';
+//import * as THREE from 'three';
 
 class ProcGen {
 
     // perlin noise.
-
-    /*
-    initialise class
-        dungeon parameters (width, height, roomSize, numRoom)
-    */
+    //https://vazgriz.com/119/procedurally-generated-dungeons/
 
     constructor (width, height, minRoomSize, maxRoomSize, numRoom) {
-        //if (ProcGenDungeon.instance) return ProcGenDungeon.instance; // Prevent new instances
         this.height = height;
         this.width = width;
         this.minRoomSize = minRoomSize;
         this.maxRoomSize = maxRoomSize;
         this.numRoom = numRoom;
-        //ProcGenDungeon.instance = this; // Store as singleton // had nightmares with instances, can remove if comfortable.
+        this.mapArray = [];
+        this.grid = [];
     }
 
-    /* 
-    generateDungeon()
-        initialiseGrid()    //make a grid
-        placeRooms()        //place room randomly
-        generateCorridor()  // connect room with corridor
-        createMesh()        // convert room & corridor into 3d
-        add to scene.
-    */
-
-    /*
-    initialiseGrid()
-        2d array representing the dungeon.
-    */
    initialiseGrid() {
-        var mapArray = [];
+        this.mapArray = [];
+        this.grid = Array.from({ length: this.width }, () => Array(this.height).fill(false));
    }
 
-    /*
-    placeRooms()
-        for each room
-            generate random size & position within constraints
-            check for overlap
-            if overlap, retry placement
-            if allow overlap, delete overlapping walls
-            add room into mapArray
-            mark as occupied in grid
+   generateRandomRoom() {
+        const width = Math.floor(Math.random() * (this.maxRoomSize - this.minRoomSize + 1)) + this.minRoomSize;
+        const height = Math.floor(Math.random() * (this.maxRoomSize - this.minRoomSize + 1)) + this.minRoomSize;
+        const x = Math.floor(Math.random() * (this.width - width));
+        const y = Math.floor(Math.random() * (this.height - height));
+        return { width, height, x, y };
+   }
+        
+    checkOverlap(room) {
+        for (let i = room.x; i < room.x + room.width; i++) {
+            for (let j = room.y; j < room.y + room.height; j++) {
+                if (this.grid [i][j]) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    markOccupied(room) {
+        for (let i = room.x; i < room.x + room.width; i++) {
+            for (let j = room.y; j < room.y + room.height; j++) {
+                this.grid[i][j] = true;
+            }
+        }
+    }
 
-     */
+    placeRooms() {
+        for (let i = 0; i < this.numRoom; i++) {
+            let room;
+            do {
+                room = this.generateRandomRoom();
+            } while (this.checkOverlap(room));
+            // maybe allow overlap later?
+            this.mapArray.push(room);
+            this.markOccupied(room);
+        }        
+    }
 
     /*
     generateCorridor()
@@ -65,4 +76,17 @@ class ProcGen {
             create mesh & add to scene.
      */
 
+    generateDungeon() {
+        this.initialiseGrid();    //make a grid
+        this.placeRooms();
+        //generateCorridor()  // connect room with corridor
+        //createMesh()        // convert room & corridor into 3d
+        //add to scene.
+        return {mapArray: this.mapArray, grid: this.grid};
+    }            
 }
+
+//Test
+const dungeon = new ProcGen(20, 20, 3, 6, 5);
+const generatedDungeon = dungeon.generateDungeon();
+console.log(generatedDungeon);
