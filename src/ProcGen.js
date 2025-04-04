@@ -2,8 +2,10 @@
 
 class ProcGen {
 
-    // perlin noise.
-    //https://vazgriz.com/119/procedurally-generated-dungeons/
+    /*  perlin noise.
+        https://vazgriz.com/119/procedurally-generated-dungeons/
+        In the grid: 0 for empty space; 1 for rooms; 2 for corridors
+    */
 
     constructor (width, height, minRoomSize, maxRoomSize, numRoom) {
         this.height = height;
@@ -17,7 +19,7 @@ class ProcGen {
 
    initialiseGrid() {
         this.mapArray = [];
-        this.grid = Array.from({ length: this.width }, () => Array(this.height).fill(false));
+        this.grid = Array.from({ length: this.width }, () => Array(this.height).fill(0)); // 0 to visualise the grid
    }
 
    generateRandomRoom() {
@@ -42,7 +44,7 @@ class ProcGen {
     markOccupied(room) {
         for (let i = room.x; i < room.x + room.width; i++) {
             for (let j = room.y; j < room.y + room.height; j++) {
-                this.grid[i][j] = true;
+                this.grid[i][j] = 1; // mark as a room
             }
         }
     }
@@ -102,14 +104,14 @@ class ProcGen {
 
     drawHorizontalCorridor(x1, x2, y) {
         for (let x = Math.min(x1, x2); x <= Math.max (x1, x2); x++) {
-            this.grid[x][y] = true;
+            if (this.grid[x][y] === 0) this.grid[x][y] = 2;
         }
     }
 
 
     drawVerticalCorridor(y1, y2, y) {
         for (let x = Math.min(y1, y2); x <= Math.max (y1, y2); x++) {
-            this.grid[x][y] = true;
+            if (this.grid[x][y] === 0) this.grid[x][y] = 2;
         }
     }
 
@@ -125,14 +127,25 @@ class ProcGen {
     generateDungeon() {
         this.initialiseGrid();    //make a grid
         this.placeRooms();
-        //generateCorridor()  // connect room with corridor
+        this.generateCorridor()  // connect room with corridor
         //createMesh()        // convert room & corridor into 3d
         //add to scene.
         return {mapArray: this.mapArray, grid: this.grid};
     }            
+
+    printGrid() {
+        let output = "";
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                output += this.grid[x][y];
+            }
+            output += "\n";
+        }
+        console.log(output);
+    }
 }
 
 //Test
 const dungeon = new ProcGen(20, 20, 3, 6, 5);
-const generatedDungeon = dungeon.generateDungeon();
-console.log(generatedDungeon);
+dungeon.generateDungeon();
+dungeon.printGrid();
