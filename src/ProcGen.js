@@ -59,13 +59,59 @@ class ProcGen {
         }        
     }
 
-    /*
-    generateCorridor()
-        for each room (except last)
-            choose another room as target
-            create corridor (choose type, straight or L-shaped or winding etc)
-            update grid with corridor path
-     */
+    findNearestRoom(currentRoom) { // Manhattan Algorithm
+        let nearestRoom = null;
+        let minDistance = Infinity;
+
+        for (const room of this.mapArray) {
+            if (room === currentRoom) continue;
+
+            let distance = Math.abs(currentRoom.x - room.x) + Math.abs(currentRoom.y - room.y);
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestRoom = true;
+            }
+        }
+        return nearestRoom;
+    }
+    
+    generateCorridor() {
+        for  (const room of this.mapArray) {
+            let targetRoom = this.findNearestRoom(room);
+            if (!targetRoom) continue;
+            this.createCorridor(room, targetRoom);
+        }
+    }
+
+    createCorridor(roomA, roomB) {
+        let x1 = roomA.x + Math.floor(roomA.width / 2);
+        let y1 = roomA.y + Math.floor(roomA.height / 2);
+
+        let x2 = roomB.x + Math.floor(roomB.width / 2);
+        let y2 = roomB.y + Math.floor(roomB.height / 2);
+
+        if (Math.random() < 0.5) {
+            this.drawHorizontalCorridor(x1, x2, y1);
+            this.drawVerticalCorridor(y1, y2, x2);
+        } else {
+            this.drawVerticalCorridor(y1, y2, x1);
+            this.drawHorizontalCorridor(x1, x2, y2);
+        }
+    }
+
+    drawHorizontalCorridor(x1, x2, y) {
+        for (let x = Math.min(x1, x2); x <= Math.max (x1, x2); x++) {
+            this.grid[x][y] = true;
+        }
+    }
+
+
+    drawVerticalCorridor(y1, y2, y) {
+        for (let x = Math.min(y1, y2); x <= Math.max (y1, y2); x++) {
+            this.grid[x][y] = true;
+        }
+    }
 
     /*
     createMesh()
