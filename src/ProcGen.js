@@ -7,8 +7,8 @@ class ProcGen {
         In the grid: 0 for empty space; 1 for rooms; 2 for corridors
     */
 
-    constructor (width, height, minRoomSize, maxRoomSize, numRoom) {
-        this.height = height;
+    constructor (width, length, minRoomSize, maxRoomSize, numRoom) {
+        this.length = length;
         this.width = width;
         this.minRoomSize = minRoomSize;
         this.maxRoomSize = maxRoomSize;
@@ -19,20 +19,20 @@ class ProcGen {
 
    initialiseGrid() {
         this.mapArray = [];
-        this.grid = Array.from({ length: this.width }, () => Array(this.height).fill(0)); // 0 to visualise the grid
+        this.grid = Array.from({ length: this.width }, () => Array(this.length).fill(0)); // 0 to visualise the grid
    }
 
    generateRandomRoom() {
         const width = Math.floor(Math.random() * (this.maxRoomSize - this.minRoomSize + 1)) + this.minRoomSize;
-        const height = Math.floor(Math.random() * (this.maxRoomSize - this.minRoomSize + 1)) + this.minRoomSize;
+        const length = Math.floor(Math.random() * (this.maxRoomSize - this.minRoomSize + 1)) + this.minRoomSize;
         const x = Math.floor(Math.random() * (this.width - width));
-        const y = Math.floor(Math.random() * (this.height - height));
-        return { width, height, x, y };
+        const y = Math.floor(Math.random() * (this.length - length));
+        return { width, length, x, y };
    }
         
     checkOverlap(room) {
         for (let i = room.x; i < room.x + room.width; i++) {
-            for (let j = room.y; j < room.y + room.height; j++) {
+            for (let j = room.y; j < room.y + room.length; j++) {
                 if (this.grid [i][j]) {
                     return true;
                 }
@@ -43,7 +43,7 @@ class ProcGen {
     
     markOccupied(room) {
         for (let i = room.x; i < room.x + room.width; i++) {
-            for (let j = room.y; j < room.y + room.height; j++) {
+            for (let j = room.y; j < room.y + room.length; j++) {
                 this.grid[i][j] = 1; // mark as a room
             }
         }
@@ -60,6 +60,14 @@ class ProcGen {
             this.markOccupied(room);
         }        
     }
+    
+    generateCorridor() {
+        for  (const room of this.mapArray) {
+            let targetRoom = this.findNearestRoom(room);
+            if (!targetRoom) continue;
+            this.createCorridor(room, targetRoom);
+        }
+    }
 
     findNearestRoom(currentRoom) { // Manhattan Algorithm
         let nearestRoom = null;
@@ -72,32 +80,24 @@ class ProcGen {
 
             if (distance < minDistance) {
                 minDistance = distance;
-                nearestRoom = true;
+                nearestRoom = room;
             }
         }
         return nearestRoom;
     }
-    
-    generateCorridor() {
-        for  (const room of this.mapArray) {
-            let targetRoom = this.findNearestRoom(room);
-            if (!targetRoom) continue;
-            this.createCorridor(room, targetRoom);
-        }
-    }
 
     createCorridor(roomA, roomB) {
         let x1 = roomA.x + Math.floor(roomA.width / 2);
-        let y1 = roomA.y + Math.floor(roomA.height / 2);
+        let y1 = roomA.y + Math.floor(roomA.length / 2);
 
         let x2 = roomB.x + Math.floor(roomB.width / 2);
-        let y2 = roomB.y + Math.floor(roomB.height / 2);
+        let y2 = roomB.y + Math.floor(roomB.length / 2);
 
-        if (Math.random() < 0.5) {
-            this.drawHorizontalCorridor(x1, x2, y1);
+        if (Math.random() < 0.5) { // randomly decide to draw the corridors horizontal or vertical first.
+            this.drawHorizontalCorridor(x1, x2, y1); // draw horizontal corridor first, then vertical.
             this.drawVerticalCorridor(y1, y2, x2);
         } else {
-            this.drawVerticalCorridor(y1, y2, x1);
+            this.drawVerticalCorridor(y1, y2, x1); // opposite above.
             this.drawHorizontalCorridor(x1, x2, y2);
         }
     }
@@ -109,8 +109,8 @@ class ProcGen {
     }
 
 
-    drawVerticalCorridor(y1, y2, y) {
-        for (let x = Math.min(y1, y2); x <= Math.max (y1, y2); x++) {
+    drawVerticalCorridor(y1, y2, x) {
+        for (let y = Math.min(y1, y2); x <= Math.max (y1, y2); x++) {
             if (this.grid[x][y] === 0) this.grid[x][y] = 2;
         }
     }
@@ -127,7 +127,7 @@ class ProcGen {
     generateDungeon() {
         this.initialiseGrid();    //make a grid
         this.placeRooms();
-        this.generateCorridor()  // connect room with corridor
+        this.generateCorridor();  // connect room with corridor
         //createMesh()        // convert room & corridor into 3d
         //add to scene.
         return {mapArray: this.mapArray, grid: this.grid};
@@ -135,7 +135,7 @@ class ProcGen {
 
     printGrid() {
         let output = "";
-        for (let y = 0; y < this.height; y++) {
+        for (let y = 0; y < this.length; y++) {
             for (let x = 0; x < this.width; x++) {
                 output += this.grid[x][y];
             }
@@ -146,6 +146,6 @@ class ProcGen {
 }
 
 //Test
-const dungeon = new ProcGen(20, 20, 3, 6, 5);
+const dungeon = new ProcGen(20, 20, 3, 6, 7);
 dungeon.generateDungeon();
 dungeon.printGrid();
