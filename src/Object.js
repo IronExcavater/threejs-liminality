@@ -40,17 +40,14 @@ export class Object {
 
 export class PlaneObject extends Object {
     constructor({
-        color = 0xffffff,
+        material = new THREE.MeshStandardMaterial(),
         position = new THREE.Vector3(),
         rotation = new THREE.Euler(),
         mass = 0,
     }) {
         super({
             geometry: new THREE.PlaneGeometry(10, 10),
-            material: new THREE.MeshStandardMaterial({
-                color: color,
-                side: THREE.DoubleSide,
-            }),
+            material: material,
             shape: new CANNON.Plane(),
             position: position,
             rotation: rotation,
@@ -62,16 +59,14 @@ export class PlaneObject extends Object {
 export class BoxObject extends Object {
     constructor({
         size = new THREE.Vector3(),
-        color = 0xffffff,
+        material = new THREE.MeshStandardMaterial(),
         position = new THREE.Vector3(),
         rotation = new THREE.Euler(),
         mass = 0,
     }) {
         super({
             geometry: new THREE.BoxGeometry(size.x, size.y, size.z),
-            material: new THREE.MeshStandardMaterial({
-                color: color,
-            }),
+            material: material,
             shape: new CANNON.Box(new CANNON.Vec3(size.x / 2, size.y / 2, size.z / 2)),
             position: position,
             rotation: rotation,
