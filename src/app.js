@@ -5,6 +5,7 @@ import Player from './Player.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
 import {updateConsole} from './console.js'
 import './utils.js'
+import {preloadResources} from './resources.js'
 
 import '/styles/app.css';
 
@@ -18,7 +19,9 @@ export const ids = new Map([
 export const collisionFilters = new Map([ // Must be powers of 2
     ['World', 1],
     ['Player', 2],
-])
+]);
+
+await preloadResources();
 
 // Core three.js components
 export const scene = new THREE.Scene();
@@ -60,6 +63,7 @@ export const player = new Player({
     height: 1.2,
     footstepInterval: 5,
     cameraBob: 0.05,
+    interactionReach: 2,
 });
 
 export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
@@ -84,7 +88,7 @@ export function addUpdatable(obj) {
     if (typeof obj?.update === 'function') {
         updatables.push(obj);
     } else {
-        console.warn('Object invalid for updatables; no update method:', obj);
+        console.warn('GameObject invalid for updatables; no update method:', obj);
     }
 }
 
@@ -93,6 +97,6 @@ export function removeUpdatable(obj) {
     if (index > -1) {
         updatables.splice(index, 1);
     } else {
-        console.warn('Object not found in updatables:', obj);
+        console.warn('GameObject not found in updatables:', obj);
     }
 }

@@ -4,12 +4,14 @@ import {PointerLockControls} from 'three/addons';
 import {world, addUpdatable, camera, scene, ids, renderer, debug, collisionFilters, audioListener} from './app.js';
 import {getKey, getKeys} from "./input.js";
 import {getSound} from "./resources.js";
+import {GameObject} from './GameObject.js';
 
 class Player {
     constructor({
         walkSpeed, jumpStrength, groundFriction,
         width, height,
-        footstepInterval, cameraBob
+        footstepInterval, cameraBob,
+        interactionReach
     }) {
         this.contactNormal = new CANNON.Vec3();
         this.isGrounded = false;
@@ -21,6 +23,8 @@ class Player {
         this.footstepProgress = 0;
         this.footstepInterval = footstepInterval;
         this.cameraBob = cameraBob;
+
+        this.raycaster = new THREE.Raycaster(undefined, undefined, 0.2, interactionReach);
 
         this.contactNormal = new CANNON.Vec3();
         this.isGrounded = false;
@@ -73,9 +77,16 @@ class Player {
             this.lookControls.lock();
         });
 
+
+        this.hasFlashlight = false;
         this.flashlight = new THREE.SpotLight(0xffffff, 1, 6, Math.PI / 3, 1, 2);
+        this.flashlight.visible = false;
         scene.add(this.flashlight);
         scene.add(this.flashlight.target);
+
+        this.glowlight = new THREE.PointLight(0x333333, 1, 2, 1);
+        this.glowlight.position.sub(new THREE.Vector3(0, height / 2, 0));
+        this.object.add(this.glowlight);
 
         addUpdatable(this);
     }
@@ -83,15 +94,14 @@ class Player {
     update(delta) {
         const velocity = this.getVelocity();
 
-        const xzVelocity = velocity;
-        xzVelocity.y = 0;
+        this.updateFootstep(velocity, delta);
+        this.updateCamera();
 
-        this.updateFootstep(xzVelocity, delta);
-        this.updateCameraBob();
+        this.handleMovement(velocity, delta);
 
-        this.applyMovement(velocity, delta);
+        this.handleInteraction();
 
-        this.updateFlashlight();
+        this.handleFlashlight();
     }
 
     getVelocity() {
@@ -120,7 +130,7 @@ class Player {
         return velocity;
     }
 
-    applyMovement(velocity, delta) {
+    handleMovement(velocity, delta) {
         if (debug.noclip) {
             this.body.velocity.x += velocity.x * 4 * delta;
             this.body.velocity.y += velocity.y * 4 * delta;
@@ -143,8 +153,11 @@ class Player {
         }
     }
 
-    updateFootstep(xzVelocity, delta) {
+    updateFootstep(velocity, delta) {
         if (!this.isGrounded) return;
+
+        const xzVelocity = velocity.clone();
+        xzVelocity.y = 0;
 
         const isWalking = xzVelocity.length() > 0.1;
 
@@ -158,13 +171,29 @@ class Player {
         }
     }
 
-    updateCameraBob() {
+    updateCamera() {
         const bobOffset = Math.sin(this.footstepProgress / this.footstepInterval * Math.PI) * this.cameraBob;
 
         this.object.position.copy(this.body.position.toThree().add(new THREE.Vector3(0, this.cameraOffset + bobOffset, 0)));
     }
 
-    updateFlashlight() {
+    handleInteraction() {
+        this.raycaster.set(this.object.position, camera.getWorldDirection(THREE.Vector3.zero));
+
+        const intersects = this.raycaster.intersectObjects(scene.children);
+
+        for (const intersect of intersects) {
+            const object = intersect.object;
+            if (object instanceof GameObject) {
+                if (getKey('KeyE', true)) object.interact(this);
+                return;
+            }
+        }
+    }
+
+    handleFlashlight() {
+        if (!this.hasFlashlight) return;
+
         if (getKey('KeyF', true)) {
             this.flashlight.visible = !this.flashlight.visible;
         }

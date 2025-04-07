@@ -1,11 +1,16 @@
 import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons';
 
 const textureLoader = new THREE.TextureLoader();
 const audioLoader = new THREE.AudioLoader();
+const modelLoader = new GLTFLoader();
 
 const textures = {}; // key: name, value: { albedo, normal, roughness }
 const materials = {}; // key: name, value: material
-const sounds = {} // key: name, value: audioBuffer
+const sounds = {}; // key: name, value: audioBuffer
+const models = {}; // key: name, value: { scene, animationClips }
+
+sounds['step'] = [];
 
 function loadTextureSet(name, basePath) {
     const albedo = textureLoader.load(`${basePath}_albedo.png`);
@@ -19,6 +24,35 @@ function loadTextureSet(name, basePath) {
 
     textures[name] = { albedo, normal, roughness };
     return textures[name];
+}
+
+function loadSound(name, paths) {
+    if (!sounds[name]) sounds[name] = [];
+    return Promise.all(paths.map(path => {
+        return new Promise((resolve, reject) => {
+            audioLoader.load(path,
+                (buffer) => {
+                    sounds[name].push(buffer);
+                    resolve(buffer);
+                },
+                undefined,
+                reject
+            );
+        });
+    }));
+}
+
+function loadModel(name, path) {
+    return new Promise((resolve, reject) => {
+        modelLoader.load(path,
+            (gltf) => {
+                models[name] = { scene: gltf.scene || gltf.scenes[0], clips: gltf.animations || [] };
+                resolve(gltf);
+            },
+            undefined,
+            reject
+        );
+    })
 }
 
 export function createMaterial(name, textureSetName) {
@@ -38,20 +72,6 @@ export function createMaterial(name, textureSetName) {
     return material;
 }
 
-function loadSound(name, path) {
-    return new Promise((resolve, reject) => {
-        audioLoader.load(path,
-            (buffer) => {
-                if (!sounds[name]) sounds[name] = [];
-                sounds[name].push(buffer);
-                resolve(buffer);
-            },
-            undefined,
-            reject
-        );
-    });
-}
-
 export function getMaterial(name) {
     return materials[name];
 }
@@ -65,18 +85,30 @@ export function getSound(name) {
     return group[Math.floor(Math.random() * group.length)];
 }
 
-// Preload textures, materials, sounds
-loadTextureSet('carpet', 'assets/textures/carpet');
-loadTextureSet('ceiling', 'assets/textures/ceiling_tiles');
-loadTextureSet('wallpaper', 'assets/textures/wallpaper');
-loadTextureSet('paint', 'assets/textures/paint');
+export function getModel(name) {
+    return models[name];
+}
 
-createMaterial('carpet', 'carpet');
-createMaterial('ceiling', 'ceiling');
-createMaterial('wallpaper', 'wallpaper');
-createMaterial('paint', 'paint');
+export const preloadResources = (async () => {
+    // Preload textures, materials, sounds
+    loadTextureSet('carpet', 'assets/textures/carpet');
+    loadTextureSet('ceiling', 'assets/textures/ceiling_tiles');
+    loadTextureSet('wallpaper', 'assets/textures/wallpaper');
+    loadTextureSet('paint', 'assets/textures/paint');
 
-loadSound('step', 'assets/sounds/step1.wav');
-loadSound('step', 'assets/sounds/step2.wav');
-loadSound('step', 'assets/sounds/step3.wav');
-loadSound('step', 'assets/sounds/step4.wav');
+    createMaterial('carpet', 'carpet');
+    createMaterial('ceiling', 'ceiling');
+    createMaterial('wallpaper', 'wallpaper');
+    createMaterial('paint', 'paint');
+
+    await Promise.all([
+        loadSound('step', [
+            'assets/sounds/step1.wav',
+            'assets/sounds/step2.wav',
+            'assets/sounds/step3.wav',
+            'assets/sounds/step4.wav',
+        ]),
+
+        loadModel('flashlight', 'assets/models/flashlight/scene.gltf'),
+    ]);
+});
