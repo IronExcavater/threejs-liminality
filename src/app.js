@@ -24,6 +24,9 @@ export const collisionFilters = new Map([ // Must be powers of 2
 export const scene = new THREE.Scene();
 export const camera = new THREE.PerspectiveCamera(
     90, window.innerWidth / window.innerHeight, 0.1, 1000);
+export const audioListener = new THREE.AudioListener();
+camera.add(audioListener);
+
 export const renderer = new THREE.WebGLRenderer({
     antialias: true,
 });
@@ -55,6 +58,8 @@ export const player = new Player({
     groundFriction: 4,
     width: 0.5,
     height: 1.2,
+    footstepInterval: 5,
+    cameraBob: 0.05,
 });
 
 export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
