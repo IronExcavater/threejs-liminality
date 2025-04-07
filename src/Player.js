@@ -1,13 +1,15 @@
 import * as CANNON from 'cannon-es';
 import * as THREE from 'three';
 import {PointerLockControls} from 'three/addons';
-import {world, addUpdatable, camera, scene, ids, renderer, debug, collisionFilters} from './app.js';
+import {world, addUpdatable, camera, scene, ids, renderer, debug, collisionFilters, audioListener} from './app.js';
 import {getKey, getKeys} from "./input.js";
+import {getSound} from "./resources.js";
 
 class Player {
     constructor({
         walkSpeed, jumpStrength, groundFriction,
         width, height,
+        footstepInterval, cameraBob
     }) {
         this.contactNormal = new CANNON.Vec3();
         this.isGrounded = false;
@@ -15,6 +17,10 @@ class Player {
         this.jumpStrength = jumpStrength;
         this.groundFriction = groundFriction;
         this.cameraOffset = height-width/2;
+
+        this.footstepProgress = 0;
+        this.footstepInterval = footstepInterval;
+        this.cameraBob = cameraBob;
 
         this.contactNormal = new CANNON.Vec3();
         this.isGrounded = false;
@@ -54,6 +60,10 @@ class Player {
         this.object.add(camera);
         scene.add(this.object);
 
+        this.sound = new THREE.PositionalAudio(audioListener);
+        this.sound.setRefDistance(10);
+        this.object.add(this.sound);
+
         this.lookControls = new PointerLockControls(this.object, renderer.domElement);
         this.lookControls.pointerSpeed = 0.5;
         this.lookControls.minPolarAngle = Math.PI / 5;
@@ -71,6 +81,20 @@ class Player {
     }
 
     update(delta) {
+        const velocity = this.getVelocity();
+
+        const xzVelocity = velocity;
+        xzVelocity.y = 0;
+
+        this.updateFootstep(xzVelocity, delta);
+        this.updateCameraBob();
+
+        this.applyMovement(velocity, delta);
+
+        this.updateFlashlight();
+    }
+
+    getVelocity() {
         // Get xz direction from input and normalise
         const isShifting = getKeys(['ShiftLeft', 'ShiftRight']);
 
@@ -87,11 +111,16 @@ class Player {
             inputDirection.z * this.walkSpeed * (inputDirection.z < 0 ? (isShifting ? 1.5 : 1) : 0.5)
         );
 
+        // Transform local to world space vector (remove yVel from impacting quaternion)
         const yVelocity = velocity.y;
         velocity.y = 0;
         velocity.applyQuaternion(this.object.quaternion);
         velocity.y = yVelocity;
 
+        return velocity;
+    }
+
+    applyMovement(velocity, delta) {
         if (debug.noclip) {
             this.body.velocity.x += velocity.x * 4 * delta;
             this.body.velocity.y += velocity.y * 4 * delta;
@@ -112,15 +141,39 @@ class Player {
                 }
             }
         }
-        this.object.position.copy(this.body.position.toThree().add(new THREE.Vector3(0, this.cameraOffset, 0)));
+    }
 
+    updateFootstep(xzVelocity, delta) {
+        if (!this.isGrounded) return;
+
+        const isWalking = xzVelocity.length() > 0.1;
+
+        this.footstepProgress += xzVelocity.length() * delta;
+        if (!isWalking && this.footstepProgress !== 0) this.footstepProgress += delta * 10;
+
+        if (this.footstepProgress >= this.footstepInterval) {
+            this.sound.setBuffer(getSound('step'));
+            this.sound.play();
+            this.footstepProgress = 0;
+        }
+    }
+
+    updateCameraBob() {
+        const bobOffset = Math.sin(this.footstepProgress / this.footstepInterval * Math.PI) * this.cameraBob;
+
+        this.object.position.copy(this.body.position.toThree().add(new THREE.Vector3(0, this.cameraOffset + bobOffset, 0)));
+    }
+
+    updateFlashlight() {
         if (getKey('KeyF', true)) {
             this.flashlight.visible = !this.flashlight.visible;
         }
 
         this.flashlight.position.copy(this.object.position);
-        this.flashlight.target.position.lerp(this.object.position.clone().add(this.object.getWorldDirection(THREE.Vector3.zero).negate().multiplyScalar(2)), 0.1);
         this.flashlight.rotation.copy(this.object.rotation);
+
+        const targetOffset = this.object.getWorldDirection(THREE.Vector3.zero).negate().multiplyScalar(2);
+        this.flashlight.target.position.lerp(this.object.position.clone().add(targetOffset), 0.1);
     }
 }
 
