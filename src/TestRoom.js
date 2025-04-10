@@ -39,7 +39,7 @@ class TestRoom {
             model: getModel('flashlight').scene,
             scale: new THREE.Vector3(0.5, 0.5, 0.5),
             position: new THREE.Vector3(0, -0.9, -2),
-            interactRadius: 1,
+            interactRadius: 0.4,
             interactCallback: (player) => {
                 if (player.hasFlashlight) return;
                 player.hasFlashlight = true;

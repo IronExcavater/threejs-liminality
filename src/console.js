@@ -54,10 +54,7 @@ export function executeCommand(command) {
         case 'wireframe':
             debug.wireframe = arg !== null ? arg : !debug.wireframe;
             scene.traverse((object) => {
-                if (object.isMesh) {
-                    // Set the wireframe property of each mesh's material
-                    object.material.visible = !debug.wireframe;
-                }
+                if (object.isMesh) object.material.visible = !debug.wireframe;
             });
             wireframeRenderer.wireframe(debug.wireframe);
             break;

@@ -1,11 +1,12 @@
 import * as THREE from 'three';
+import {EffectComposer, OutlinePass, RenderPass} from 'three/addons';
 import * as CANNON from 'cannon-es';
 import TestRoom from './TestRoom.js';
 import Player from './Player.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
 import {updateConsole} from './console.js'
-import './utils.js'
 import {preloadResources} from './resources.js'
+import './utils.js'
 
 import '/styles/app.css';
 
@@ -37,6 +38,18 @@ renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 renderer.setAnimationLoop(() => update(clock.getDelta()));
 
+export const composer = new EffectComposer(renderer);
+
+const renderPass = new RenderPass(scene, camera);
+composer.addPass(renderPass);
+
+export const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight),
+    scene, camera);
+outlinePass.edgeStrength = 3;
+outlinePass.edgeThickness = 1;
+outlinePass.visibleEdgeColor.set(0xffff00);
+composer.addPass(outlinePass);
+
 window.addEventListener('resize', () => windowResize());
 windowResize();
 
@@ -63,7 +76,7 @@ export const player = new Player({
     height: 1.2,
     footstepInterval: 5,
     cameraBob: 0.05,
-    interactionReach: 2,
+    interactionReach: 1.2,
 });
 
 export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
@@ -75,13 +88,16 @@ function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
+    outlinePass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
 }
 
 function update(delta) {
     world.fixedStep();
     updateConsole();
     for (const obj of updatables) obj.update(delta);
-    renderer.render(scene, camera);
+    //renderer.render(scene, camera);
+    composer.render();
 }
 
 export function addUpdatable(obj) {
