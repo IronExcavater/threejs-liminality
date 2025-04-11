@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {BoxObject, ModelObject, PlaneObject} from './GameObject.js';
 import {getMaterial, getModel} from './resources.js';
-import {addUpdatable, removeUpdatable, world} from './app.js';
+import {addUpdatable, camera, removeUpdatable, world} from './app.js';
 import {Easing, Tween} from './tween.js';
 
 class TestRoom {
@@ -44,22 +44,35 @@ class TestRoom {
             interactCallback: (player) => {
                 if (player.hasFlashlight) return;
                 player.hasFlashlight = true;
+
                 world.removeBody(flashlight.body);
+                flashlight.canInteract = false;
 
                 new Tween({
                     setter: position => flashlight.position.copy(position),
                     startValue: flashlight.position.clone(),
-                    endValue: () => player.object.position.clone().sub(new THREE.Vector3(0, 0.5, 0)),
+                    endValue: () => player.flashlight.position.clone(),
                     duration: 1,
-                    onCompleteCallback: () => flashlight.removeFromParent()
+                    onCompleteCallback: () => {
+                        flashlight.update = () => {
+                            flashlight.position.copy(player.flashlight.position);
+                            const targetPos = player.flashlight.target.getWorldPosition(new THREE.Vector3());
+                            flashlight.lookAt(targetPos);
+                        }
+                        addUpdatable(flashlight);
+                    },
                 });
 
                 new Tween({
                     setter: quaternion => flashlight.quaternion.copy(quaternion),
                     startValue: flashlight.quaternion.clone(),
-                    endValue: () => player.object.quaternion.clone().invert(),
+                    endValue: () => {
+                        const euler = new THREE.Euler().setFromQuaternion(player.flashlight.quaternion);
+                        euler.y += Math.PI;
+                        return new THREE.Quaternion().setFromEuler(euler);
+                    },
                     duration: 1,
-                })
+                });
             },
         });
     }

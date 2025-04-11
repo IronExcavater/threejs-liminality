@@ -202,7 +202,7 @@ class Player {
             this.flashlight.visible = !this.flashlight.visible;
         }
 
-        this.flashlight.position.copy(this.object.position);
+        this.flashlight.position.copy(this.object.localToWorld(new THREE.Vector3(0.3, -0.3, -0.2)));
         this.flashlight.rotation.copy(this.object.rotation);
 
         const targetOffset = this.object.getWorldDirection(THREE.Vector3.zero).negate().multiplyScalar(2);
