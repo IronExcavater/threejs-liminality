@@ -5,6 +5,8 @@ class ProcGen {
     /*  perlin noise.
         https://vazgriz.com/119/procedurally-generated-dungeons/
         In the grid: 0 for empty space; 1 for rooms; 2 for corridors
+
+        https://thingonitsown.blogspot.com/2018/11/dungeon-generator.html
     */
 
     constructor (width, length, minRoomSize, maxRoomSize, numRoom) {
@@ -28,6 +30,8 @@ class ProcGen {
         const x = Math.floor(Math.random() * (this.width - width));
         const y = Math.floor(Math.random() * (this.length - length));
         return { width, length, x, y };
+        // add a door
+        // make rooms not just a square, but add corners, random walls inside etc.
    }
         
     checkOverlap(room) {
@@ -62,12 +66,35 @@ class ProcGen {
     }
     
     generateCorridor() {
-        for  (const room of this.mapArray) {
-            let targetRoom = this.findNearestRoom(room);
-            if (!targetRoom) continue;
-            this.createCorridor(room, targetRoom);
+        // make multiple corridors
+        const connectedRooms = [this.mapArray[0]]; // Start with the first room
+        const unconnectedRooms = this.mapArray.slice(1); // Remaining rooms
+    
+        while (unconnectedRooms.length > 0) {
+            let closestPair = null;
+            let shortestDistance = Infinity;
+    
+            for (const connected of connectedRooms) {
+                for (const unconnected of unconnectedRooms) {
+                    const distance = Math.abs(connected.x - unconnected.x) + Math.abs(connected.y - unconnected.y);
+                    if (distance < shortestDistance) {
+                        shortestDistance = distance;
+                        closestPair = { from: connected, to: unconnected };
+                    }
+                }
+            }
+    
+            if (closestPair) {
+                this.createCorridor(closestPair.from, closestPair.to);
+                connectedRooms.push(closestPair.to);
+                const index = unconnectedRooms.indexOf(closestPair.to);
+                if (index !== -1) unconnectedRooms.splice(index, 1);
+            } else {
+                break; // fallback just in case
+            }
         }
     }
+    
 
     findNearestRoom(currentRoom) { // Manhattan Algorithm
         let nearestRoom = null;
@@ -122,6 +149,7 @@ class ProcGen {
             apply material & texture
             merge geometries for optimisation
             create mesh & add to scene.
+            
      */
 
     generateDungeon() {
