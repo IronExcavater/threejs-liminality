@@ -5,8 +5,11 @@ import Player from './Player.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
 import {updateConsole} from './console.js'
 import './utils.js'
+import Effects from './overlay.js';
 
 import '/styles/app.css';
+
+
 
 const updatables = [];
 const clock = new THREE.Clock();
@@ -91,3 +94,13 @@ export function removeUpdatable(obj) {
         console.warn('Object not found in updatables:', obj);
     }
 }
+
+/// might need to edit //////
+const effectsManager = new Effects(renderer, width, height);
+const renderManager = new RendererManager(effectsManager.Effects.effect)
+
+function animate() {
+    requestAnimationFrame(animate);
+    renderManager.render(scene, camera);
+}
+/// might need to edit //////

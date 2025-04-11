@@ -1,5 +1,26 @@
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { BloomPass } from 'three/addons/postprocessing/BloomPass.js';
-import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import * as THREE from 'three';
+
+			import { AnaglyphEffect } from 'three/addons/effects/AnaglyphEffect.js';
+
+            class Effects{
+
+                constructor(renderer, width, height) {
+                this.effect = new AnaglyphEffect(renderer);
+                this.effect.setSize(width, height);
+                }
+
+                resize(width, height) {
+                    this.effect.setSize(width, height);
+                }
+            }
+
+            class RendererManagr {
+                constructor(effect) {
+                    this.effect = effect;
+                }
+
+                render(scene, camera) {
+                    this.effect.render(scene, camera);
+                }
+            }
+
