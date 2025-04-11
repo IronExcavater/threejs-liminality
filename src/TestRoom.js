@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {BoxObject, ModelObject, PlaneObject} from './GameObject.js';
 import {getMaterial, getModel} from './resources.js';
 import {addUpdatable, removeUpdatable, world} from './app.js';
+import {Easing, Tween} from './tween.js';
 
 class TestRoom {
     constructor() {
@@ -45,30 +46,20 @@ class TestRoom {
                 player.hasFlashlight = true;
                 world.removeBody(flashlight.body);
 
-                const duration = 0.6;
-                let time = 0;
+                new Tween({
+                    setter: position => flashlight.position.copy(position),
+                    startValue: flashlight.position.clone(),
+                    endValue: () => player.object.position.clone().sub(new THREE.Vector3(0, 0.5, 0)),
+                    duration: 1,
+                    onCompleteCallback: () => flashlight.removeFromParent()
+                });
 
-                const startPos = flashlight.position.clone();
-
-                const speed = 2;
-                const threshold = 0.1;
-
-                flashlight.update = (delta) => {
-                    const playerPos = player.object.position.clone().sub(new THREE.Vector3(0, 0.5, 0));
-                    const direction = playerPos.sub(flashlight.position);
-                    const distance = direction.length();
-                    const velocity = direction.normalize().multiplyScalar(speed * delta);
-
-                    if (distance < threshold) {
-                        flashlight.removeFromParent();
-                        removeUpdatable(flashlight);
-                        return;
-                    }
-
-                    flashlight.position.add(velocity);
-                }
-
-                addUpdatable(flashlight);
+                new Tween({
+                    setter: quaternion => flashlight.quaternion.copy(quaternion),
+                    startValue: flashlight.quaternion.clone(),
+                    endValue: () => player.object.quaternion.clone().invert(),
+                    duration: 1,
+                })
             },
         });
     }

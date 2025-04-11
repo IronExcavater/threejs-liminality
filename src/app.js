@@ -4,6 +4,7 @@ import * as CANNON from 'cannon-es';
 import TestRoom from './TestRoom.js';
 import Player from './Player.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
+import {updateTweens} from './tween.js';
 import {updateConsole} from './console.js'
 import {preloadResources} from './resources.js'
 import './utils.js'
@@ -95,6 +96,8 @@ function windowResize() {
 function update(delta) {
     world.fixedStep();
     updateConsole();
+    updateTweens(delta);
+
     for (const obj of updatables) obj.update(delta);
     //renderer.render(scene, camera);
     composer.render();

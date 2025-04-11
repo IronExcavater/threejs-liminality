@@ -67,6 +67,7 @@ class Player {
 
         this.sound = new THREE.PositionalAudio(audioListener);
         this.sound.setRefDistance(10);
+        this.sound.setVolume(10)
         this.object.add(this.sound);
 
         this.lookControls = new PointerLockControls(this.object, renderer.domElement);
@@ -80,13 +81,13 @@ class Player {
 
 
         this.hasFlashlight = false;
-        this.flashlight = new THREE.SpotLight(0xffffff, 1, 6, Math.PI / 3, 1, 2);
+        this.flashlight = new THREE.SpotLight(0xffffff, 3, 6, Math.PI / 3, 1, 1);
         this.flashlight.visible = false;
         scene.add(this.flashlight);
         scene.add(this.flashlight.target);
 
-        this.glowlight = new THREE.PointLight(0x333333, 3, 6, 1);
-        this.glowlight.position.sub(new THREE.Vector3(0, height * 0.8, 0));
+        this.glowlight = new THREE.PointLight(0xffffff, 0.8, 10, 0.8);
+        this.glowlight.position.sub(new THREE.Vector3(0, height * 0.7, 0));
         this.object.add(this.glowlight);
 
         addUpdatable(this);
