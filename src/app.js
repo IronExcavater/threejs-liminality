@@ -6,8 +6,10 @@ import CannonDebugRenderer from './CannonDebugRenderer.js';
 import {updateConsole} from './console.js'
 import './utils.js'
 import {preloadResources} from './resources.js'
-
+import Overlay from './overlay.js';
 import '/styles/app.css';
+
+
 
 const updatables = [];
 const clock = new THREE.Clock();
@@ -100,3 +102,18 @@ export function removeUpdatable(obj) {
         console.warn('GameObject not found in updatables:', obj);
     }
 }
+
+/// might need to edit //////
+const width = window.innerWidth;
+const height = window.innerHeight;
+const effectsManager = new Overlay.Effects(renderer, width, height);
+const renderManager = new Overlay.RendererManager(effectsManager.effect)
+
+function animate() {
+    requestAnimationFrame(animate);
+    renderManager.render(scene, camera);
+}
+
+animate();
+/// might need to edit ////// 
+
