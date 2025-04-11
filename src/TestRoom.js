@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {BoxObject, ModelObject, PlaneObject} from './GameObject.js';
 import {getMaterial, getModel} from './resources.js';
-import {removeUpdatable} from "./app.js";
+import {addUpdatable, removeUpdatable, world} from './app.js';
 
 class TestRoom {
     constructor() {
@@ -39,25 +39,36 @@ class TestRoom {
             model: getModel('flashlight').scene,
             scale: new THREE.Vector3(0.5, 0.5, 0.5),
             position: new THREE.Vector3(0, -0.9, -2),
-            interactRadius: 1,
+            interactRadius: 0.4,
             interactCallback: (player) => {
                 if (player.hasFlashlight) return;
                 player.hasFlashlight = true;
+                world.removeBody(flashlight.body);
 
-                const speed = 5;
+                const duration = 0.6;
+                let time = 0;
+
+                const startPos = flashlight.position.clone();
+
+                const speed = 2;
                 const threshold = 0.1;
 
                 flashlight.update = (delta) => {
-                    const direction = player.position.clone().sub(flashlight.position);
+                    const playerPos = player.object.position.clone().sub(new THREE.Vector3(0, 0.5, 0));
+                    const direction = playerPos.sub(flashlight.position);
+                    const distance = direction.length();
                     const velocity = direction.normalize().multiplyScalar(speed * delta);
-                    flashlight
 
-                    if (direction.length() < threshold) {
+                    if (distance < threshold) {
                         flashlight.removeFromParent();
                         removeUpdatable(flashlight);
-
+                        return;
                     }
+
+                    flashlight.position.add(velocity);
                 }
+
+                addUpdatable(flashlight);
             },
         });
     }

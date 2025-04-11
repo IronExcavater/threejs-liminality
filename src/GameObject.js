@@ -31,6 +31,7 @@ export class GameObject extends THREE.Object3D {
         this.addEventListener('added', () => world.addBody(this.body));
         this.addEventListener('removed', () => world.removeBody(this.body));
 
+        this.canInteract = interactCallback != null;
         this.interactCallback = interactCallback;
         this.interactRadius = interactRadius;
 
@@ -48,8 +49,8 @@ export class GameObject extends THREE.Object3D {
     }
 
     raycast(raycaster, intersects) {
-        this.meshRaycast(raycaster, intersects);
         this.interactRaycast(raycaster, intersects);
+        this.meshRaycast(raycaster, intersects);
     }
 
     meshRaycast(raycaster, intersects) {
@@ -67,15 +68,21 @@ export class GameObject extends THREE.Object3D {
 
         const worldPos = new THREE.Vector3();
         this.getWorldPosition(worldPos);
-        const distance = raycaster.ray.distanceToPoint(worldPos);
 
-        if (distance <= this.interactRadius) {
-            intersects.push({
-                distance,
-                point: worldPos,
-                object: this,
-            });
-        }
+        const distanceToOrigin = raycaster.ray.distanceToPoint(worldPos);
+        if (distanceToOrigin > this.interactRadius) return;
+
+        const intersectPoint = new THREE.Vector3();
+        raycaster.ray.closestPointToPoint(worldPos, intersectPoint);
+        const distanceToIntersect = raycaster.ray.origin.distanceTo(intersectPoint);
+
+        if (distanceToIntersect > raycaster.far) return;
+
+        intersects.push({
+            distance: distanceToIntersect,
+            point: intersectPoint,
+            object: this,
+        });
     }
 
     interact(player) {

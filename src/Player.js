@@ -1,7 +1,8 @@
 import * as CANNON from 'cannon-es';
 import * as THREE from 'three';
 import {PointerLockControls} from 'three/addons';
-import {world, addUpdatable, camera, scene, ids, renderer, debug, collisionFilters, audioListener} from './app.js';
+import {world, addUpdatable, camera, scene, ids, renderer, debug, collisionFilters, audioListener,
+    outlinePass} from './app.js';
 import {getKey, getKeys} from "./input.js";
 import {getSound} from "./resources.js";
 import {GameObject} from './GameObject.js';
@@ -84,8 +85,8 @@ class Player {
         scene.add(this.flashlight);
         scene.add(this.flashlight.target);
 
-        this.glowlight = new THREE.PointLight(0x333333, 1, 2, 1);
-        this.glowlight.position.sub(new THREE.Vector3(0, height / 2, 0));
+        this.glowlight = new THREE.PointLight(0x333333, 3, 6, 1);
+        this.glowlight.position.sub(new THREE.Vector3(0, height * 0.8, 0));
         this.object.add(this.glowlight);
 
         addUpdatable(this);
@@ -182,11 +183,13 @@ class Player {
 
         const intersects = this.raycaster.intersectObjects(scene.children);
 
+        outlinePass.selectedObjects = [];
         for (const intersect of intersects) {
             const object = intersect.object;
-            if (object instanceof GameObject) {
+            if (object instanceof GameObject && object.canInteract) {
                 if (getKey('KeyE', true)) object.interact(this);
-                return;
+                outlinePass.selectedObjects.push(object);
+                break;
             }
         }
     }
