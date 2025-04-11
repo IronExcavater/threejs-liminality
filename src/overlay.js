@@ -6,7 +6,8 @@ import * as THREE from 'three';
                 constructor(renderer, width, height) {
                 this.effect = new AnaglyphEffect(renderer);
                 this.effect.setSize(width, height);
-                }
+                this.effect.eyeSeparation = 0.01;              
+            }
 
                 resize(width, height) {
                     this.effect.setSize(width, height);
