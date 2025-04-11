@@ -64,7 +64,7 @@ export class GameObject extends THREE.Object3D {
     }
 
     interactRaycast(raycaster, intersects) {
-        if (!this.interactCallback) return;
+        if (!this.canInteract) return;
 
         const worldPos = new THREE.Vector3();
         this.getWorldPosition(worldPos);

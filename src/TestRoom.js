@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import {BoxObject, ModelObject, PlaneObject} from './GameObject.js';
 import {getMaterial, getModel} from './resources.js';
-import {addUpdatable, removeUpdatable, world} from './app.js';
+import {addUpdatable, camera, removeUpdatable, world} from './app.js';
+import {Easing, Tween} from './tween.js';
 
 class TestRoom {
     constructor() {
@@ -43,32 +44,35 @@ class TestRoom {
             interactCallback: (player) => {
                 if (player.hasFlashlight) return;
                 player.hasFlashlight = true;
+
                 world.removeBody(flashlight.body);
+                flashlight.canInteract = false;
 
-                const duration = 0.6;
-                let time = 0;
+                new Tween({
+                    setter: position => flashlight.position.copy(position),
+                    startValue: flashlight.position.clone(),
+                    endValue: () => player.flashlight.position.clone(),
+                    duration: 1,
+                    onCompleteCallback: () => {
+                        flashlight.update = () => {
+                            flashlight.position.copy(player.flashlight.position);
+                            const targetPos = player.flashlight.target.getWorldPosition(new THREE.Vector3());
+                            flashlight.lookAt(targetPos);
+                        }
+                        addUpdatable(flashlight);
+                    },
+                });
 
-                const startPos = flashlight.position.clone();
-
-                const speed = 2;
-                const threshold = 0.1;
-
-                flashlight.update = (delta) => {
-                    const playerPos = player.object.position.clone().sub(new THREE.Vector3(0, 0.5, 0));
-                    const direction = playerPos.sub(flashlight.position);
-                    const distance = direction.length();
-                    const velocity = direction.normalize().multiplyScalar(speed * delta);
-
-                    if (distance < threshold) {
-                        flashlight.removeFromParent();
-                        removeUpdatable(flashlight);
-                        return;
-                    }
-
-                    flashlight.position.add(velocity);
-                }
-
-                addUpdatable(flashlight);
+                new Tween({
+                    setter: quaternion => flashlight.quaternion.copy(quaternion),
+                    startValue: flashlight.quaternion.clone(),
+                    endValue: () => {
+                        const euler = new THREE.Euler().setFromQuaternion(player.flashlight.quaternion);
+                        euler.y += Math.PI;
+                        return new THREE.Quaternion().setFromEuler(euler);
+                    },
+                    duration: 1,
+                });
             },
         });
     }
