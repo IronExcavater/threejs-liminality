@@ -3,8 +3,8 @@ import * as THREE from 'three';
 import {PointerLockControls} from 'three/addons';
 import {world, addUpdatable, camera, scene, ids, renderer, debug, collisionFilters, audioListener,
     outlinePass} from './app.js';
-import {getKey, getKeys} from "./input.js";
-import {getSound} from "./resources.js";
+import {getKey, getKeys} from './input.js';
+import {getSound} from './resources.js';
 import {GameObject} from './GameObject.js';
 
 class Player {
@@ -98,7 +98,7 @@ class Player {
         scene.add(this.flashlight);
         scene.add(this.flashlight.target);
 
-        this.glowlight = new THREE.PointLight(0xffffff, 1.5, 10, 0.8);
+        this.glowlight = new THREE.PointLight(0xffffff, 0.4, 10, 0.8);
         this.glowlight.position.sub(new THREE.Vector3(0, height * 0.7, 0));
         this.object.add(this.glowlight);
 

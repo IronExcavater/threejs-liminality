@@ -5,9 +5,9 @@ import TestRoom from './TestRoom.js';
 import Player from './Player.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
 import {updateTweens} from './tween.js';
-import {updateConsole} from './console.js'
-import {preloadResources} from './resources.js'
-import './utils.js'
+import {updateConsole} from './console.js';
+import {preloadResources} from './resources.js';
+import './utils.js';
 
 import '/styles/app.css';
 
