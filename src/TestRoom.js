@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import {BoxObject, ModelObject, PlaneObject} from './GameObject.js';
 import {getMaterial, getModel} from './resources.js';
-import {addUpdatable, camera, removeUpdatable, world} from './app.js';
-import {Easing, Tween} from './tween.js';
+import {addUpdatable, world} from './app.js';
+import {Tween} from './tween.js';
 
 class TestRoom {
     constructor() {
@@ -53,7 +53,7 @@ class TestRoom {
                     startValue: flashlight.position.clone(),
                     endValue: () => player.flashlight.position.clone(),
                     duration: 1,
-                    onCompleteCallback: () => {
+                    onComplete: () => {
                         flashlight.update = () => {
                             flashlight.position.copy(player.flashlight.position);
                             const targetPos = player.flashlight.target.getWorldPosition(new THREE.Vector3());

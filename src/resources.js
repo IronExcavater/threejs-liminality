@@ -3,7 +3,7 @@ import {GLTFLoader} from 'three/addons';
 
 const textureLoader = new THREE.TextureLoader();
 const audioLoader = new THREE.AudioLoader();
-const modelLoader = new GLTFLoader();
+const gltfLoader = new GLTFLoader();
 
 const textures = {}; // key: name, value: { albedo, normal, roughness }
 const materials = {}; // key: name, value: material
@@ -31,7 +31,7 @@ function loadSound(name, paths) {
     return Promise.all(paths.map(path => {
         return new Promise((resolve, reject) => {
             audioLoader.load(path,
-                (buffer) => {
+                buffer => {
                     sounds[name].push(buffer);
                     resolve(buffer);
                 },
@@ -44,15 +44,27 @@ function loadSound(name, paths) {
 
 function loadModel(name, path) {
     return new Promise((resolve, reject) => {
-        modelLoader.load(path,
-            (gltf) => {
-                models[name] = { scene: gltf.scene || gltf.scenes[0], clips: gltf.animations || [] };
+        gltfLoader.load(path,
+            gltf => {
+                const model = gltf.scene || gltf.scenes[0];
+
+                model.traverse(child => {
+                    if (!child.isMesh) return;
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    child.raycast = () => {};
+                })
+
+                models[name] = {
+                    scene: model,
+                    clips: gltf.animations || [],
+                };
                 resolve(gltf);
             },
             undefined,
             reject
         );
-    })
+    });
 }
 
 export function createMaterial(name, textureSetName) {
@@ -86,7 +98,11 @@ export function getSound(name) {
 }
 
 export function getModel(name) {
-    return models[name];
+    const { scene, clips } = models[name];
+    return {
+        scene: scene.clone(true),
+        clips: clips,
+    };
 }
 
 export const preloadResources = (async () => {
