@@ -1,156 +1,224 @@
-// import * as THREE from 'three';
+import * as THREE from 'three';
 
-class ProcGenV2 {
-
-    constructor(width, length, minRoomSize, maxRoomSize, numRooms) {
-        this.width = width;
-        this.length = length;
-        this.minRoomSize = minRoomSize;
-        this.maxRoomSize = maxRoomSize;
+export class ProcGenV2 {
+    constructor({
+        scene,
+        screenWidth = 1920,
+        screenHeight = 1080,
+        cellSize = 8,
+        mazeFillPercentage = 0.8,
+        numMazes = 1000,
+        stopCollisionProbability = 0.5,
+        numRooms = 2,
+        roomWidthRange = [1, 32],
+        roomHeightRange = [1, 32],
+        numPillarRooms = 1,
+        pillarRoomWidthRange = [1, 32],
+        pillarRoomHeightRange = [1, 32],
+        pillarSpacingRange = [2, 6],
+        numCustomRooms = 1,
+        minNumSides = 2,
+        maxNumSides = 8,
+        minCustomRoomRadius = 1,
+        maxCustomRoomRadius = 16,
+    } = {}) {
+        this.scene = scene;
+        this.screenWidth = screenWidth;
+        this.screenHeight = screenHeight;
+        this.cellSize = cellSize;
+        this.mazeFillPercentage = mazeFillPercentage;
+        this.numMazes = numMazes;
+        this.stopCollisionProbability = stopCollisionProbability;
         this.numRooms = numRooms;
-        this.mapArray = [];
-        this.grid = [];
+        this.roomWidthRange = roomWidthRange;
+        this.roomHeightRange = roomHeightRange;
+        this.numPillarRooms = numPillarRooms;
+        this.pillarRoomWidthRange = pillarRoomWidthRange;
+        this.pillarRoomHeightRange = pillarRoomHeightRange;
+        this.pillarSpacingRange = pillarSpacingRange;
+        this.numCustomRooms = numCustomRooms;
+        this.minNumSides = minNumSides;
+        this.maxNumSides = maxNumSides;
+        this.minCustomRoomRadius = minCustomRoomRadius;
+        this.maxCustomRoomRadius = maxCustomRoomRadius;
+
+        this.numCols = Math.floor(screenWidth / cellSize);
+        this.numRows = Math.floor(screenHeight / cellSize);
+        this.maze = [];
+        this.meshes = [];
+
+        this.generateAll();
     }
 
-    initialiseGrid() {
-        this.mapArray = [];
-        this.grid = Array.from({ length: this.width }, () => Array(this.length).fill(0));
+    clear() {
+        this.meshes.forEach(mesh => this.scene.remove(mesh));
+        this.meshes = [];
     }
 
-    generateRandomRoom() {
-        const width = Math.floor(Math.random() * (this.maxRoomSize - this.minRoomSize + 1)) + this.minRoomSize;
-        const length = Math.floor(Math.random() * (this.maxRoomSize - this.minRoomSize + 1)) + this.minRoomSize;
-        const x = Math.floor(Math.random() * (this.width - width));
-        const y = Math.floor(Math.random() * (this.length - length));
-        return { width, length, x, y };
+    generateAll() {
+        this.clear();
+        this.generateMaze();
+        this.generateRooms();
+        this.generatePillarRooms();
+        this.generateCustomRooms();
+        this.renderMaze();
     }
 
-    checkOverlap(room) {
-        for (let i = room.x; i < room.x + room.width; i++) {
-            for (let j = room.y; j < room.y + room.length; j++) {
-                if (this.grid[i][j]) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+    generateMaze() {
+        this.maze = Array.from({ length: this.numRows }, (_, y) =>
+            Array.from({ length: this.numCols }, (_, x) => ({
+                x,
+                y,
+                visited: false,
+            }))
+        );
 
-    markOccupied(room) {
-        for (let i = room.x; i < room.x + room.width; i++) {
-            for (let j = room.y; j < room.y + room.length; j++) {
-                this.grid[i][j] = 1;
-            }
-        }
-    }
+        const visitedCells = new Set();
+        for (let i = 0; i < this.numMazes; i++) {
+            let x = Math.floor(Math.random() * this.numCols);
+            let y = Math.floor(Math.random() * this.numRows);
+            const key = `${x},${y}`;
+            visitedCells.add(key);
+            let frontier = [{ x, y }];
 
-    placeRooms() {
-        for (let i = 0; i < this.numRooms; i++) {
-            let room;
-            let attempts = 0;
-            do {
-                room = this.generateRandomRoom();
-                attempts++;
-                if (attempts > 100) break; // avoid infinite loop
-            } while (this.checkOverlap(room));
-            this.mapArray.push(room);
-            this.markOccupied(room);
-        }
-    }
+            while (
+                visitedCells.size / (this.numCols * this.numRows) <
+                this.mazeFillPercentage
+            ) {
+                if (frontier.length === 0) break;
 
-    createCorridor(roomA, roomB) {
-        let x1 = roomA.x + Math.floor(roomA.width / 2);
-        let y1 = roomA.y + Math.floor(roomA.length / 2);
-        let x2 = roomB.x + Math.floor(roomB.width / 2);
-        let y2 = roomB.y + Math.floor(roomB.length / 2);
+                const randIndex = Math.floor(Math.random() * frontier.length);
+                const { x, y } = frontier[randIndex];
+                frontier.splice(randIndex, 1);
 
-        if (Math.random() < 0.5) {
-            this.drawHorizontalCorridor(x1, x2, y1);
-            this.drawVerticalCorridor(y1, y2, x2);
-        } else {
-            this.drawVerticalCorridor(y1, y2, x1);
-            this.drawHorizontalCorridor(x1, x2, y2);
-        }
-    }
+                this.maze[y][x].visited = true;
+                visitedCells.add(`${x},${y}`);
 
-    drawHorizontalCorridor(x1, x2, y) {
-        for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
-            if (this.grid[x][y] === 0) this.grid[x][y] = 2;
-        }
-    }
+                const neighbors = [];
+                if (x > 1 && !visitedCells.has(`${x - 2},${y}`)) neighbors.push({ x: x - 2, y });
+                if (x < this.numCols - 2 && !visitedCells.has(`${x + 2},${y}`)) neighbors.push({ x: x + 2, y });
+                if (y > 1 && !visitedCells.has(`${x},${y - 2}`)) neighbors.push({ x, y: y - 2 });
+                if (y < this.numRows - 2 && !visitedCells.has(`${x},${y + 2}`)) neighbors.push({ x, y: y + 2 });
 
-    drawVerticalCorridor(y1, y2, x) {
-        for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
-            if (this.grid[x][y] === 0) this.grid[x][y] = 2;
-        }
-    }
+                if (neighbors.length > 0) {
+                    const nextCell = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    const nx = nextCell.x;
+                    const ny = nextCell.y;
 
-    generateCorridors() {
-        const connectedRooms = [this.mapArray[0]];
-        const unconnectedRooms = this.mapArray.slice(1);
+                    const mx = Math.floor((x + nx) / 2);
+                    const my = Math.floor((y + ny) / 2);
 
-        while (unconnectedRooms.length > 0) {
-            let closestPair = null;
-            let shortestDistance = Infinity;
-
-            for (const connected of connectedRooms) {
-                for (const unconnected of unconnectedRooms) {
-                    const distance = Math.abs(connected.x - unconnected.x) + Math.abs(connected.y - unconnected.y);
-                    if (distance < shortestDistance) {
-                        shortestDistance = distance;
-                        closestPair = { from: connected, to: unconnected };
+                    if (
+                        Math.random() > this.stopCollisionProbability ||
+                        !this.maze[my][mx].visited
+                    ) {
+                        frontier.push({ x: nx, y: ny });
+                        this.maze[my][mx].visited = true;
+                        visitedCells.add(`${nx},${ny}`);
+                        visitedCells.add(`${mx},${my}`);
                     }
                 }
             }
+        }
+    }
 
-            if (closestPair) {
-                this.createCorridor(closestPair.from, closestPair.to);
-                connectedRooms.push(closestPair.to);
-                unconnectedRooms.splice(unconnectedRooms.indexOf(closestPair.to), 1);
-            } else {
-                break;
+    generateRooms() {
+        for (let i = 0; i < this.numRooms; i++) {
+            const roomWidth = this.randInt(...this.roomWidthRange);
+            const roomHeight = this.randInt(...this.roomHeightRange);
+            const x = this.randInt(0, this.numCols - roomWidth);
+            const y = this.randInt(0, this.numRows - roomHeight);
+
+            for (let row = y; row < y + roomHeight; row++) {
+                for (let col = x; col < x + roomWidth; col++) {
+                    this.maze[row][col].visited = true;
+                }
             }
         }
     }
 
-    generateDungeon() {
-        this.initialiseGrid();
-        this.placeRooms();
-        this.generateCorridors();
-        return { mapArray: this.mapArray, grid: this.grid };
+    generatePillarRooms() {
+        for (let i = 0; i < this.numPillarRooms; i++) {
+            const roomWidth = this.randInt(...this.pillarRoomWidthRange);
+            const roomHeight = this.randInt(...this.pillarRoomHeightRange);
+            const x = this.randInt(0, this.numCols - roomWidth);
+            const y = this.randInt(0, this.numRows - roomHeight);
+
+            for (let row = y; row < y + roomHeight; row++) {
+                for (let col = x; col < x + roomWidth; col++) {
+                    this.maze[row][col].visited = true;
+                }
+            }
+
+            const pillarSpacing = this.randInt(...this.pillarSpacingRange);
+            for (let row = y; row < y + roomHeight; row += pillarSpacing) {
+                for (let col = x; col < x + roomWidth; col += pillarSpacing) {
+                    this.maze[row][col].visited = false;
+                }
+            }
+        }
     }
 
-    createMesh() {
-        const group = new THREE.Group();
-        const roomMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const corridorMaterial = new THREE.MeshBasicMaterial({ color: 0x888888 });
+    generateCustomRooms() {
+        for (let i = 0; i < this.numCustomRooms; i++) {
+            const numSides = this.randInt(this.minNumSides, this.maxNumSides);
+            const radius = this.randInt(this.minCustomRoomRadius, this.maxCustomRoomRadius);
+            const cx = this.randInt(radius * 2, this.numCols - radius * 2);
+            const cy = this.randInt(radius * 2, this.numRows - radius * 2);
 
-        for (let x = 0; x < this.width; x++) {
-            for (let y = 0; y < this.length; y++) {
-                let value = this.grid[x][y];
-                if (value === 0) continue;
+            const vertices = [];
+            const angleStep = (Math.PI * 2) / numSides;
+            for (let j = 0; j < numSides; j++) {
+                const angle = j * angleStep;
+                const vx = Math.floor(cx + radius * Math.cos(angle));
+                const vy = Math.floor(cy + radius * Math.sin(angle));
+                vertices.push({ x: vx, y: vy });
+            }
 
-                const geometry = new THREE.BoxGeometry(1, 1, 1);
-                const material = value === 1 ? roomMaterial : corridorMaterial;
+            for (let row = cy - radius; row < cy + radius; row++) {
+                for (let col = cx - radius; col < cx + radius; col++) {
+                    if (this.isInsidePolygon(col, row, vertices)) {
+                        this.maze[row][col].visited = true;
+                    }
+                }
+            }
+        }
+    }
+
+    renderMaze() {
+        const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+
+        for (let row of this.maze) {
+            for (let cell of row) {
+                const geometry = new THREE.PlaneGeometry(this.cellSize, this.cellSize);
+                const material = cell.visited ? whiteMat : blackMat;
                 const mesh = new THREE.Mesh(geometry, material);
-                mesh.position.set(x, 0, y);
-                group.add(mesh);
+                mesh.position.set(
+                    cell.x * this.cellSize - this.screenWidth / 2 + this.cellSize / 2,
+                    cell.y * this.cellSize - this.screenHeight / 2 + this.cellSize / 2,
+                    0
+                );
+                this.scene.add(mesh);
+                this.meshes.push(mesh);
             }
         }
-
-        return group;
     }
 
-    printGrid() {
-        let output = "";
-        for (let y = 0; y < this.length; y++) {
-            for (let x = 0; x < this.width; x++) {
-                output += this.grid[x][y];
-            }
-            output += "\n";
+    isInsidePolygon(x, y, vertices) {
+        let inside = false;
+        for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+            const xi = vertices[i].x, yi = vertices[i].y;
+            const xj = vertices[j].x, yj = vertices[j].y;
+            const intersect =
+                yi > y !== yj > y &&
+                x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+            if (intersect) inside = !inside;
         }
-        console.log(output);
+        return inside;
+    }
+
+    randInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 }
-
-export default ProcGenV2;
