@@ -3,8 +3,8 @@ import * as THREE from 'three';
 import {PointerLockControls} from 'three/addons';
 import {world, addUpdatable, camera, scene, ids, renderer, debug, collisionFilters, audioListener,
     outlinePass} from './app.js';
-import {getKey, getKeys} from "./input.js";
-import {getSound} from "./resources.js";
+import {getKey, getKeys} from './input.js';
+import {getSound} from './resources.js';
 import {GameObject} from './GameObject.js';
 
 class Player {
@@ -67,6 +67,7 @@ class Player {
 
         this.sound = new THREE.PositionalAudio(audioListener);
         this.sound.setRefDistance(10);
+        this.sound.setVolume(10);
         this.object.add(this.sound);
 
         this.lookControls = new PointerLockControls(this.object, renderer.domElement);
@@ -80,13 +81,25 @@ class Player {
 
 
         this.hasFlashlight = false;
-        this.flashlight = new THREE.SpotLight(0xffffff, 1, 6, Math.PI / 3, 1, 2);
+        this.flickerDuration = 0;
+        this.flickerCooldown = 0;
+        this.flashlightParams = {
+            power: 20,
+            powerUsage: 1,
+            maxIntensity: 3,
+            minIntensity: 0.8,
+            maxFlicker: 0.2,
+            minFlicker: 0.05,
+            minCooldown: 0.05,
+        };
+
+        this.flashlight = new THREE.SpotLight(0xffffff, this.flashlightParams.maxIntensity, 6, Math.PI / 3, 1, 1);
         this.flashlight.visible = false;
         scene.add(this.flashlight);
         scene.add(this.flashlight.target);
 
-        this.glowlight = new THREE.PointLight(0x333333, 3, 6, 1);
-        this.glowlight.position.sub(new THREE.Vector3(0, height * 0.8, 0));
+        this.glowlight = new THREE.PointLight(0xffffff, 0.4, 10, 0.8);
+        this.glowlight.position.sub(new THREE.Vector3(0, height * 0.7, 0));
         this.object.add(this.glowlight);
 
         addUpdatable(this);
@@ -102,7 +115,7 @@ class Player {
 
         this.handleInteraction();
 
-        this.handleFlashlight();
+        this.handleFlashlight(delta);
     }
 
     getVelocity() {
@@ -194,18 +207,38 @@ class Player {
         }
     }
 
-    handleFlashlight() {
+    handleFlashlight(delta) {
         if (!this.hasFlashlight) return;
 
         if (getKey('KeyF', true)) {
             this.flashlight.visible = !this.flashlight.visible;
         }
 
-        this.flashlight.position.copy(this.object.position);
+        this.flashlight.position.copy(this.object.localToWorld(new THREE.Vector3(0.3, -0.3, -0.2)));
         this.flashlight.rotation.copy(this.object.rotation);
 
         const targetOffset = this.object.getWorldDirection(THREE.Vector3.zero).negate().multiplyScalar(2);
         this.flashlight.target.position.lerp(this.object.position.clone().add(targetOffset), 0.1);
+
+        if (!this.flashlight.visible) return;
+
+        this.flashlightParams.power = Math.max(this.flashlightParams.power - delta * this.flashlightParams.powerUsage, 0);
+
+        if (this.flashlightParams.power < 15) {
+            const intensity = THREE.MathUtils.lerp(this.flashlightParams.minIntensity, this.flashlightParams.maxIntensity, this.flashlightParams.power / 15);
+
+            const flickerChance = 0.2 + 0.8 * intensity;
+            if (this.flickerCooldown <= 0 && Math.random() < flickerChance) {
+                const random = (1 + Math.random()) * 0.5;
+                this.flickerDuration = THREE.MathUtils.lerp(this.flashlightParams.minFlicker, this.flashlightParams.maxFlicker, intensity) + random;
+                this.flickerCooldown = this.flickerDuration + this.flashlightParams.minCooldown + intensity * random;
+            }
+            this.flickerDuration -= delta;
+            this.flickerCooldown -= delta;
+            this.flashlight.intensity = this.flickerDuration > 0 ? 0.01 : intensity;
+        } else {
+            this.flashlight.intensity = this.flashlightParams.maxIntensity;
+        }
     }
 }
 

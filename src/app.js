@@ -4,14 +4,12 @@ import * as CANNON from 'cannon-es';
 import TestRoom from './TestRoom.js';
 import Player from './Player.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
-import {updateConsole} from './console.js'
-import {preloadResources} from './resources.js'
-import Overlay from './overlay.js';
-import './utils.js'
+import {updateTweens} from './tween.js';
+import {updateConsole} from './console.js';
+import {preloadResources} from './resources.js';
+import './utils.js';
 
 import '/styles/app.css';
-
-
 
 const updatables = [];
 const clock = new THREE.Clock();
@@ -98,8 +96,9 @@ function windowResize() {
 function update(delta) {
     world.fixedStep();
     updateConsole();
+    updateTweens(delta);
+
     for (const obj of updatables) obj.update(delta);
-    //renderer.render(scene, camera);
     composer.render();
 }
 
@@ -119,18 +118,3 @@ export function removeUpdatable(obj) {
         console.warn('GameObject not found in updatables:', obj);
     }
 }
-
-/// might need to edit //////
-const width = window.innerWidth;
-const height = window.innerHeight;
-const effectsManager = new Overlay.Effects(renderer, width, height);
-const renderManager = new Overlay.RendererManager(effectsManager.effect)
-
-function animate() {
-    requestAnimationFrame(animate);
-    renderManager.render(scene, camera);
-}
-
-animate();
-/// might need to edit ////// 
-
