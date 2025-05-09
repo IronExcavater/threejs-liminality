@@ -3,6 +3,7 @@ import {EffectComposer, OutlinePass, RenderPass} from 'three/addons';
 import * as CANNON from 'cannon-es';
 import TestRoom from './TestRoom.js';
 import Player from './Player.js';
+import Maze from './Maze.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
 import {updateTweens} from './tween.js';
 import {updateConsole} from './console.js';
@@ -10,7 +11,6 @@ import {preloadResources} from './resources.js';
 import './utils.js';
 
 import '/styles/app.css';
-import {ProcGenV2} from "./ProcGenV2.js";
 
 const updatables = [];
 const clock = new THREE.Clock();
@@ -86,8 +86,8 @@ scene.add(ambientLight);
 
 new TestRoom();
 
-const maze = new ProcGenV2();
-maze.printGrid();
+const map = new Maze();
+map.printGrid();
 
 function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;

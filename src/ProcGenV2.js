@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {scene} from "./app.js";
-import {BoxObject, PlaneObject} from "./Object.js";
+import {BoxObject, PlaneObject} from "./GameObject.js";
 import {getMaterial} from "./resources.js";
 
 export class ProcGenV2 {

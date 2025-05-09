@@ -61,3 +61,7 @@ function addOnChange(Class, methodnames = []) {
 addOnChange(THREE.Vector3, ['set', 'copy', 'add', 'sub']);
 addOnChange(THREE.Euler, ['set', 'copy', 'setFromQuaternion']);
 addOnChange(THREE.Quaternion, ['set', 'copy', 'setFromEuler']);
+
+export function randomRange(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
