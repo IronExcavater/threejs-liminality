@@ -1,10 +1,13 @@
 import * as THREE from 'three';
+import {EffectComposer, OutlinePass, RenderPass} from 'three/addons';
 import * as CANNON from 'cannon-es';
 import TestRoom from './TestRoom.js';
 import Player from './Player.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
-import {updateConsole} from './console.js'
-import './utils.js'
+import {updateTweens} from './tween.js';
+import {updateConsole} from './console.js';
+import {preloadResources} from './resources.js';
+import './utils.js';
 
 import '/styles/app.css';
 import {ProcGenV2} from "./ProcGenV2.js";
@@ -19,18 +22,35 @@ export const ids = new Map([
 export const collisionFilters = new Map([ // Must be powers of 2
     ['World', 1],
     ['Player', 2],
-])
+]);
+
+await preloadResources();
 
 // Core three.js components
 export const scene = new THREE.Scene();
 export const camera = new THREE.PerspectiveCamera(
     90, window.innerWidth / window.innerHeight, 0.1, 1000);
+export const audioListener = new THREE.AudioListener();
+camera.add(audioListener);
+
 export const renderer = new THREE.WebGLRenderer({
     antialias: true,
 });
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 renderer.setAnimationLoop(() => update(clock.getDelta()));
+
+export const composer = new EffectComposer(renderer);
+
+const renderPass = new RenderPass(scene, camera);
+composer.addPass(renderPass);
+
+export const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight),
+    scene, camera);
+outlinePass.edgeStrength = 3;
+outlinePass.edgeThickness = 1;
+outlinePass.visibleEdgeColor.set(0xffff00);
+composer.addPass(outlinePass);
 
 window.addEventListener('resize', () => windowResize());
 windowResize();
@@ -56,6 +76,9 @@ export const player = new Player({
     groundFriction: 4,
     width: 0.5,
     height: 1.2,
+    footstepInterval: 5,
+    cameraBob: 0.05,
+    interactionReach: 1.2,
 });
 
 export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
@@ -70,20 +93,24 @@ function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
+    outlinePass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
 }
 
 function update(delta) {
     world.fixedStep();
     updateConsole();
+    updateTweens(delta);
+
     for (const obj of updatables) obj.update(delta);
-    renderer.render(scene, camera);
+    composer.render();
 }
 
 export function addUpdatable(obj) {
     if (typeof obj?.update === 'function') {
         updatables.push(obj);
     } else {
-        console.warn('Object invalid for updatables; no update method:', obj);
+        console.warn('GameObject invalid for updatables; no update method:', obj);
     }
 }
 
@@ -92,6 +119,6 @@ export function removeUpdatable(obj) {
     if (index > -1) {
         updatables.splice(index, 1);
     } else {
-        console.warn('Object not found in updatables:', obj);
+        console.warn('GameObject not found in updatables:', obj);
     }
 }
