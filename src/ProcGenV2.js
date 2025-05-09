@@ -1,13 +1,16 @@
 import * as THREE from 'three';
+import {scene} from "./app.js";
+import {BoxObject, PlaneObject} from "./Object.js";
+import {getMaterial} from "./resources.js";
 
 export class ProcGenV2 {
     constructor(config = {}) {
         // Default configuration
         this.config = {
             // World dimensions
-            worldWidth: 1920,
-            worldHeight: 1080,
-            cellSize: 8,
+            worldWidth: 100,
+            worldHeight: 100,
+            cellSize: 1,
             
             // Maze generation
             mazeFillPercentage: 0.8,
@@ -33,13 +36,13 @@ export class ProcGenV2 {
             maxCustomRoomRadius: 16,
             
             // 3D settings
-            wallHeight: 30,
+            wallHeight: 2,
             floorColor: 0xaaaaaa,
             wallColor: 0xdddddd,
             ceilingColor: 0x888888,
             ambientLightColor: 0x404040,
             directionalLightColor: 0xffffff,
-            directionalLightIntensity: 0.5
+            directionalLightIntensity: 4
         };
 
         // Merge custom config with defaults
@@ -109,6 +112,18 @@ export class ProcGenV2 {
                 }
             }
         }
+    }
+
+    printGrid() {
+        let output = "";
+        console.log(this.maze)
+        for (let y = 0; y < this.numRows; y++) {
+            for (let x = 0; x < this.numCols; x++) {
+                output += this.maze[y][x] ? "█" : "░";
+            }
+            output += "\n";
+        }
+        console.log(output);
     }
 
     generateRooms() {
@@ -219,19 +234,17 @@ export class ProcGenV2 {
                 if (y === this.numRows-1 || !this.maze[y+1][x]) hasWall = true; // Bottom
                 
                 if (hasWall) {
-                    const wallGeometry = new THREE.BoxGeometry(
-                        this.config.cellSize,
-                        this.config.wallHeight,
-                        this.config.cellSize
-                    );
-                    const wall = new THREE.Mesh(wallGeometry, this.wallMaterial);
-                    
-                    // Position the wall
-                    wall.position.x = x * this.config.cellSize - this.config.worldWidth / 2 + this.config.cellSize / 2;
-                    wall.position.z = y * this.config.cellSize - this.config.worldHeight / 2 + this.config.cellSize / 2;
-                    wall.position.y = this.config.wallHeight / 2;
-                    
-                    this.wallGroup.add(wall);
+                    const wall = new BoxObject({
+                        size: new THREE.Vector3(this.config.cellSize,
+                            this.config.wallHeight,
+                            this.config.cellSize),
+                        material: getMaterial('wallpaper'),
+                        position: new THREE.Vector3(
+                            x * this.config.cellSize - this.config.worldWidth / 2 + this.config.cellSize / 2,
+                            1,
+                            y * this.config.cellSize - this.config.worldHeight / 2 + this.config.cellSize / 2
+                        ),
+                    })
                 }
             }
         }
@@ -278,6 +291,18 @@ export class ProcGenV2 {
         const floorGeometry = new THREE.PlaneGeometry(this.config.worldWidth, this.config.worldHeight);
         this.floor = new THREE.Mesh(floorGeometry, this.floorMaterial);
         this.floor.rotation.x = -Math.PI / 2;
+
+        const floor = new PlaneObject({
+            material: getMaterial('carpet'),
+            position: new THREE.Vector3(0, -1, 0),
+            rotation: new THREE.Euler(-Math.PI/2, 0, 0),
+        });
+
+        const ceiling = new PlaneObject({
+            material: getMaterial('ceiling'),
+            position: new THREE.Vector3(0, 1, 0),
+            rotation: new THREE.Euler(Math.PI/2, 0, 0),
+        });
         
         // Create ceiling
         const ceilingGeometry = new THREE.PlaneGeometry(this.config.worldWidth, this.config.worldHeight);
@@ -297,11 +322,13 @@ export class ProcGenV2 {
         this.createFloorAndCeiling();
         this.createWalls();
         this.createPillars();
+
+        this.addToScene(scene)
     }
 
     addToScene(scene) {
-        scene.add(this.floor);
-        scene.add(this.ceiling);
+        //scene.add(this.floor);
+        //scene.add(this.ceiling);
         scene.add(this.wallGroup);
         scene.add(this.pillarGroup);
     }

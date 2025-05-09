@@ -7,6 +7,7 @@ import {updateConsole} from './console.js'
 import './utils.js'
 
 import '/styles/app.css';
+import {ProcGenV2} from "./ProcGenV2.js";
 
 const updatables = [];
 const clock = new THREE.Clock();
@@ -61,6 +62,9 @@ export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
 scene.add(ambientLight);
 
 new TestRoom();
+
+const maze = new ProcGenV2();
+maze.printGrid();
 
 function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
