@@ -8,12 +8,12 @@ export const Easing = {
     EaseOutCubic: t => 1 - Math.pow(1 - t, 3),
     EaseInOutCubic: t =>
         t < 0.5
-        ? 4 * t ** 3
-        : 1 - Math.pow(-2 * t + 2, 3) / 2,
+            ? 4 * t ** 3
+            : 1 - Math.pow(-2 * t + 2, 3) / 2,
     EaseOutElastic: t =>
         t === 0 ? 0
-        : t === 1 ? 1
-        : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI) / 3) + 1,
+            : t === 1 ? 1
+                : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI) / 3) + 1,
     EaseOutBounce: t => {
         const n1 = 7.5625, d1 = 2.75;
         if (t < 1 / d1) return n1 * t * t;
@@ -25,19 +25,19 @@ export const Easing = {
 
 export class Tween {
     constructor({
-            setter,
-            startValue,
-            endValue,
-            duration,
-            easing = Easing.EaseInOutCubic,
-            onCompleteCallback = () => {},
-        }) {
+                    setter,
+                    startValue,
+                    endValue,
+                    duration,
+                    easing = Easing.EaseInOutCubic,
+                    onComplete = () => {},
+                }) {
         this.setter = setter;
         this.startValue = startValue;
         this.endValue = endValue;
         this.duration = duration;
         this.easing = easing;
-        this.onCompleteCallback = onCompleteCallback;
+        this.onComplete = onComplete;
 
         this.elapsed = 0;
         tweens.push(this);
@@ -56,7 +56,7 @@ export class Tween {
         this.setter(lerp(this.startValue, this.getEndValue(), easedT));
 
         if (t >= 1) {
-            if (typeof this.onCompleteCallback === 'function') this.onCompleteCallback();
+            if (typeof this.onComplete === 'function') this.onComplete();
             return false;
         }
         return true;

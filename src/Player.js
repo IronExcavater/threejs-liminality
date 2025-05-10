@@ -3,8 +3,8 @@ import * as THREE from 'three';
 import {PointerLockControls} from 'three/addons';
 import {world, addUpdatable, camera, scene, ids, renderer, debug, collisionFilters, audioListener,
     outlinePass} from './app.js';
-import {getKey, getKeys} from "./input.js";
-import {getSound} from "./resources.js";
+import {getKey, getKeys} from './input.js';
+import {getSound} from './resources.js';
 import {GameObject} from './GameObject.js';
 
 class Player {
@@ -98,7 +98,7 @@ class Player {
         scene.add(this.flashlight);
         scene.add(this.flashlight.target);
 
-        this.glowlight = new THREE.PointLight(0xffffff, 1.5, 10, 0.8);
+        this.glowlight = new THREE.PointLight(0xffffff, 0.4, 10, 0.8);
         this.glowlight.position.sub(new THREE.Vector3(0, height * 0.7, 0));
         this.object.add(this.glowlight);
 
@@ -222,6 +222,8 @@ class Player {
 
         if (!this.flashlight.visible) return;
 
+        this.flashlightParams.power = Math.max(this.flashlightParams.power - delta * this.flashlightParams.powerUsage, 0);
+
         if (this.flashlightParams.power < 15) {
             const intensity = THREE.MathUtils.lerp(this.flashlightParams.minIntensity, this.flashlightParams.maxIntensity, this.flashlightParams.power / 15);
 
@@ -234,18 +236,9 @@ class Player {
             this.flickerDuration -= delta;
             this.flickerCooldown -= delta;
             this.flashlight.intensity = this.flickerDuration > 0 ? 0.01 : intensity;
-
-            console.log('flicker?', {
-                power: this.flashlightParams.power,
-                intensity: intensity,
-                flickerChance: flickerChance,
-                flickerDuration: this.flickerDuration,
-                flickerCooldown: this.flickerCooldown,
-            });
         } else {
             this.flashlight.intensity = this.flashlightParams.maxIntensity;
         }
-        this.flashlightParams.power = Math.max(this.flashlightParams.power - delta * this.flashlightParams.powerUsage, 0);
     }
 }
 
