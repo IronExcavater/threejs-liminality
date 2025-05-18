@@ -39,10 +39,13 @@ export class GameObject extends THREE.Object3D {
 
         this.position.onChange(() => {
             this.body.position.copy(this.position.toCannon());
-        })
+        });
         this.quaternion.onChange(() => {
             this.body.quaternion.copy(this.quaternion);
-        })
+        });
+        this.scale.onChange(() => {
+            this.setScale(this.scale);
+        });
 
         this.position.copy(position);
         this.rotation.copy(rotation);
@@ -88,6 +91,22 @@ export class GameObject extends THREE.Object3D {
     interact(player) {
         if (this.interactCallback) this.interactCallback(player);
     }
+
+    setScale(vector3) {
+        this.setUVRepeat(vector3);
+    }
+
+    setUVRepeat(scale) {
+        const maps = ['map', 'normalMap', 'roughnessMap'];
+        for (const map of maps) {
+            const tex = this.mesh.material[map];
+            if (tex) {
+                tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+                tex.repeat.set(scale.x, scale.y);
+                tex.needsUpdate = true;
+            }
+        }
+    }
 }
 
 // PlaneObject collider is infinite (limitation in Cannon.js), use BoxObject for finite collider
@@ -114,7 +133,7 @@ export class PlaneObject extends GameObject {
     }
 
     setScale(vector3) {
-        this.mesh.scale.set(vector3.x, vector3.y, vector3.z);
+        this.scale.set(vector3.x, vector3.y, vector3.z);
     }
 }
 
@@ -141,7 +160,7 @@ export class BoxObject extends GameObject {
     }
 
     setScale(vector3) {
-        this.mesh.scale.copy(vector3);
+        this.scale.copy(vector3);
         this.body.removeShape(this.shape);
         this.shape.halfExtents.set(vector3.x, vector3.y, vector3.z);
         this.body.addShape(this.shape);
@@ -201,7 +220,7 @@ export class ModelObject extends GameObject {
             : vector3;
 
         const finalScale = new THREE.Vector3().copy(this.normaliseScale).multiply(appliedScale);
-        this.mesh.scale.copy(finalScale);
+        this.scale.copy(finalScale);
 
         this.body.removeShape(this.shape);
         const newRadius = (appliedScale.x + appliedScale.y + appliedScale.z) / (preserveProportions ? 3 : 6);
@@ -220,5 +239,69 @@ export class ModelObject extends GameObject {
             hit.object = this;
             intersects.push(hit);
         }
+    }
+}
+
+export class CylinderObject extends GameObject {
+    constructor({
+        radiusTop = 0.5,
+        radiusBottom = 0.5,
+        height = 1,
+        material = new THREE.MeshBasicMaterial({}),
+        position = new THREE.Vector3(),
+        rotation = new THREE.Euler(),
+        mass = 0,
+        interactRadius = 0,
+        interactCallback = null,
+    }) {
+        super({
+            geometry: new THREE.CylinderGeometry(radiusTop, radiusBottom, height, 16),
+            material: material,
+            shape: new CANNON.Cylinder(radiusTop, radiusBottom, height, 16),
+            position: position,
+            rotation: rotation,
+            mass: mass,
+            interactRadius: interactRadius,
+            interactCallback: interactCallback,
+        });
+    }
+
+    setScale(vector3) {
+        this.scale.copy(vector3);
+        this.body.removeShape(this.shape);
+        const radius = (vector3.x + vector3.z) / 2;
+        this.shape = new CANNON.Cylinder(radius, radius, vector3.y, 16);
+        this.body.addShape(this.shape);
+    }
+}
+
+export class SphereObject extends GameObject {
+    constructor({
+        radius = 1,
+        material = new THREE.MeshBasicMaterial({}),
+        position = new THREE.Vector3(),
+        rotation = new THREE.Euler(),
+        mass = 0,
+        interactRadius = 0,
+        interactCallback = null,
+    }) {
+        super({
+            geometry: new THREE.SphereGeometry(radius, 16, 16),
+            material: material,
+            shape: new CANNON.Sphere(radius),
+            position: position,
+            rotation: rotation,
+            mass: mass,
+            interactRadius: interactRadius,
+            interactCallback: interactCallback,
+        });
+    }
+
+    setScale(vector3) {
+        this.scale.copy(vector3);
+        this.body.removeShape(this.shape);
+        const radius = (vector3.x + vector3.y + vector3.z) / 3;
+        this.shape = new CANNON.Sphere(radius);
+        this.body.addShape(this.shape);
     }
 }
