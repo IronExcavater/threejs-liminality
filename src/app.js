@@ -9,6 +9,7 @@ import {updateTweens} from './tween.js';
 import {updateConsole} from './console.js';
 import {preloadResources} from './resources.js';
 import './utils.js';
+import Chunk from './Chunk.js';
 
 import '/styles/app.css';
 
@@ -86,9 +87,6 @@ scene.add(ambientLight);
 
 new TestRoom();
 
-const map = new Maze();
-map.printGrid();
-
 function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -101,6 +99,16 @@ function update(delta) {
     world.fixedStep();
     updateConsole();
     updateTweens(delta);
+
+    // Dynamically load chunks around the player
+    Chunk.loadChunksAroundPlayer(chunks, player, CHUNK_SIZE, VIEW_DISTANCE);
+
+    // Render visible chunks
+    chunks.forEach(chunk => {
+        if (chunk.visible) {
+            chunk.render(scene, map.config.cellSize);
+        }
+    });
 
     for (const obj of updatables) obj.update(delta);
     composer.render();
@@ -120,5 +128,42 @@ export function removeUpdatable(obj) {
         updatables.splice(index, 1);
     } else {
         console.warn('GameObject not found in updatables:', obj);
+    }
+}
+
+
+const map = new Maze();
+const WORLD_WIDTH = map.config.mapSize * map.config.cellSize; // get width & depth for chunking functon
+const WORLD_DEPTH = map.config.mapSize * map.config.cellSize;
+map.printGrid();
+
+// Test Chunk System
+const CHUNK_SIZE = 15;
+const VIEW_DISTANCE = 2;
+
+const chunks = Chunk.createChunks(WORLD_WIDTH, WORLD_DEPTH, CHUNK_SIZE);
+Chunk.hideChunks(chunks);
+
+assignMazeToChunks(map.grid, chunks, map.config.cellSize, CHUNK_SIZE);
+
+
+function assignMazeToChunks(grid, chunks, cellSize, chunkSize) {
+    chunks.forEach(chunk => {
+        chunk.cells = [];
+    });
+
+    for (let y = 0; y < grid.length; y++) {
+        for (let x = 0; x < grid[y].length; x++) {
+            const worldX = x * cellSize;
+            const worldZ = y * cellSize;
+
+            const chunkX = Math.floor(worldX / chunkSize);
+            const chunkZ = Math.floor(worldZ / chunkSize);
+
+            const chunk = chunks.find(c => c.chunkx === chunkX * chunkSize && c.chunkz === chunkZ * chunkSize);
+            if (chunk) {
+                chunk.cells.push({ x, y, isWall: grid[y][x] });
+            }
+        }
     }
 }
