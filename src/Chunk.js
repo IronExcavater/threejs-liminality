@@ -52,7 +52,7 @@ class Chunk {
             const distanceX = Math.abs(chunk.chunkx - playerPos.x);
             const distanceZ = Math.abs(chunk.chunkz - playerPos.z);
             if (distanceX > unloadDistance * chunkSize || distanceZ > unloadDistance * chunkSize) {
-                chunk.visible = false; // Explicitly unload chunks beyond the unload distance
+                chunk.visible = false;
             }
         });
     }
