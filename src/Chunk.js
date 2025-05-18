@@ -5,6 +5,14 @@ class Chunk {
         this.visible = false;
     }
 
+    // render chunk
+    render(scene, cellSize) {
+        const geometry = new THREE.BoxGeometry(cellSize, 1, cellSize);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: false });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(this.chunkx + cellSize / 2, 0, this.chunkz + cellSize / 2);
+        scene.add(mesh);
+    }
 
     // track player position
     static trackPlayerPosition(player) {
