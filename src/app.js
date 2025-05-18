@@ -59,6 +59,9 @@ composer.addPass(renderPass);
 composer.addPass(outlinePass);
 composer.addPass(bloomPass);
 composer.addPass(filmPass);
+
+const outlinePass = new THREE.OutlinePass();
+export {outlinePass};
            
 ////////////gonna try to move to Effects.js//////////////
 

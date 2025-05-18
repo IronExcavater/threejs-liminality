@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 
-            import {EffectComposer, OutlinePass, FilmPass, BloomPass, RenderPass} from 'three/addons';
+            import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+            import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+            import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
+            import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
+            import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass.js';
             import {scene, camera, renderer} from './app.js';
 
 
