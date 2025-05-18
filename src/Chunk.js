@@ -6,12 +6,17 @@ class Chunk {
     }
 
     // render chunk
-    render(scene, cellSize) {
-        const geometry = new THREE.BoxGeometry(cellSize, 1, cellSize);
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: false });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(this.chunkx + cellSize / 2, 0, this.chunkz + cellSize / 2);
-        scene.add(mesh);
+    chunkRender(scene, cellSize) {
+        if (!this.mesh) {
+            const geometry = new THREE.BoxGeometry(cellSize, 1, cellSize);
+            const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: false });
+            this.mesh = new THREE.Mesh(geometry, material);
+            this.mesh.position.set(this.chunkx + cellSize / 2, 0, this.chunkz + cellSize / 2);
+        }
+        if (!scene.children.includes(this.mesh)) {
+            scene.add(this.mesh);
+        }
+        this.mesh.visible = this.visible;
     }
 
     // track player position

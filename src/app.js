@@ -106,7 +106,7 @@ function update(delta) {
     // Render visible chunks
     chunks.forEach(chunk => {
         if (chunk.visible) {
-            chunk.render(scene, map.config.cellSize);
+            chunk.chunkRender(scene, map.config.cellSize);
         }
     });
 
