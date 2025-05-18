@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import {EffectComposer, OutlinePass, RenderPass} from 'three/addons';
+//import {EffectComposer, OutlinePass, RenderPass } from 'three/addons';
 import * as CANNON from 'cannon-es';
 import TestRoom from './TestRoom.js';
 import Player from './Player.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
 import {updateConsole} from './console.js'
 import {preloadResources} from './resources.js'
-import Overlay from './overlay.js';
+import {filmPass, bloomPass, outlinePass, renderPass, composer} from './Effects.js'
 import './utils.js'
 
 import '/styles/app.css';
@@ -40,11 +40,13 @@ export const renderer = new THREE.WebGLRenderer({
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 renderer.setAnimationLoop(() => update(clock.getDelta()));
-
+//////////////composer stuff in here////////////////
+/*
 export const composer = new EffectComposer(renderer);
 
 const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
+
 
 export const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight),
     scene, camera);
@@ -52,6 +54,13 @@ outlinePass.edgeStrength = 3;
 outlinePass.edgeThickness = 1;
 outlinePass.visibleEdgeColor.set(0xffff00);
 composer.addPass(outlinePass);
+*/
+composer.addPass(renderPass);
+composer.addPass(outlinePass);
+composer.addPass(bloomPass);
+composer.addPass(filmPass);
+           
+////////////gonna try to move to Effects.js//////////////
 
 window.addEventListener('resize', () => windowResize());
 windowResize();
@@ -93,6 +102,8 @@ function windowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight);
     outlinePass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+    bloomPass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+    filmPass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
 }
 
 function update(delta) {
@@ -120,17 +131,7 @@ export function removeUpdatable(obj) {
     }
 }
 
-/// might need to edit //////
-const width = window.innerWidth;
-const height = window.innerHeight;
-const effectsManager = new Overlay.Effects(renderer, width, height);
-const renderManager = new Overlay.RendererManager(effectsManager.effect)
 
-function animate() {
-    requestAnimationFrame(animate);
-    renderManager.render(scene, camera);
-}
 
-animate();
-/// might need to edit ////// 
+
 
