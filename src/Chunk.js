@@ -8,7 +8,8 @@ class Chunk {
 
     // track player position
     static trackPlayerPosition(player) {
-        return {x : player.position.x, z: player.position.z};
+        return {x : player.body.position.x,
+               z: player.body.position.z}; // update, found body.position in player.js. UNTESTED.
     }
 
     // chuck world into grid
