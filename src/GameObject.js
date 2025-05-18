@@ -46,6 +46,7 @@ export class GameObject extends THREE.Object3D {
 
         this.position.copy(position);
         this.rotation.copy(rotation);
+        this.setUVRepeat();
     }
 
     raycast(raycaster, intersects) {
@@ -89,17 +90,16 @@ export class GameObject extends THREE.Object3D {
         if (this.interactCallback) this.interactCallback(player);
     }
 
-    setScale(vector3) {
-        this.setUVRepeat(vector3);
-    }
+    setUVRepeat() {
+        const size = new THREE.Vector3();
+        new THREE.Box3().setFromObject(this).getSize(size);
 
-    setUVRepeat(scale) {
         const maps = ['map', 'normalMap', 'roughnessMap'];
         for (const map of maps) {
             const tex = this.mesh.material[map];
             if (tex) {
                 tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-                tex.repeat.set(scale.x, scale.y);
+                tex.repeat.set(size.x, size.z);
                 tex.needsUpdate = true;
             }
         }
@@ -131,6 +131,7 @@ export class PlaneObject extends GameObject {
 
     setScale(vector3) {
         this.scale.set(vector3.x, vector3.y, vector3.z);
+        this.setUVRepeat();
     }
 }
 
@@ -161,6 +162,7 @@ export class BoxObject extends GameObject {
         this.body.removeShape(this.shape);
         this.shape.halfExtents.set(vector3.x, vector3.y, vector3.z);
         this.body.addShape(this.shape);
+        this.setUVRepeat();
     }
 }
 
@@ -269,6 +271,7 @@ export class CylinderObject extends GameObject {
         const radius = (vector3.x + vector3.z) / 2;
         this.shape = new CANNON.Cylinder(radius, radius, vector3.y, 16);
         this.body.addShape(this.shape);
+        this.setUVRepeat();
     }
 }
 
@@ -300,5 +303,6 @@ export class SphereObject extends GameObject {
         const radius = (vector3.x + vector3.y + vector3.z) / 3;
         this.shape = new CANNON.Sphere(radius);
         this.body.addShape(this.shape);
+        this.setUVRepeat();
     }
 }

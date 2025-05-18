@@ -9,7 +9,7 @@ import {GameObject} from './GameObject.js';
 
 class Player {
     constructor({
-        walkSpeed, jumpStrength, groundFriction,
+        walkSpeed, runSpeed, jumpStrength, groundFriction,
         width, height,
         footstepInterval, cameraBob,
         interactionReach
@@ -17,6 +17,7 @@ class Player {
         this.contactNormal = new CANNON.Vec3();
         this.isGrounded = false;
         this.walkSpeed = walkSpeed;
+        this.runSpeed = runSpeed;
         this.jumpStrength = jumpStrength;
         this.groundFriction = groundFriction;
         this.cameraOffset = height-width/2;
@@ -121,18 +122,19 @@ class Player {
     getVelocity() {
         // Get xz direction from input and normalise
         const isShifting = getKeys(['ShiftLeft', 'ShiftRight']);
+        console.log(isShifting);
 
         const inputDirection = new THREE.Vector3(
             getKey('KeyD') - getKey('KeyA'),
-            getKey('Space') - isShifting,
+            getKey('Space') - getKey('KeyC'),
             getKey('KeyS') - getKey('KeyW')
         ).normalize();
 
         // Get max velocity by multiply direction by speed depending on conditions
         const velocity = new THREE.Vector3(
-            inputDirection.x * this.walkSpeed * 0.8,
+            inputDirection.x * (isShifting ? this.runSpeed : this.walkSpeed),
             inputDirection.y * this.walkSpeed,
-            inputDirection.z * this.walkSpeed * (inputDirection.z < 0 ? (isShifting ? 1.5 : 1) : 0.5)
+            inputDirection.z * (isShifting ? this.runSpeed : this.walkSpeed)
         );
 
         // Transform local to world space vector (remove yVel from impacting quaternion)
@@ -239,6 +241,21 @@ class Player {
         } else {
             this.flashlight.intensity = this.flashlightParams.maxIntensity;
         }
+    }
+
+    setPosition(vector3) {
+        this.body.position.copy(vector3.toCannon());
+        this.object.position.copy(vector3);
+        this.updateCamera();
+    }
+
+    setRotation(vector3) {
+        this.object.rotation.copy(vector3);
+        this.body.quaternion.copy(new CANNON.Quaternion().setFromEuler(
+            vector3.x,
+            vector3.y,
+            vector3.z
+        ));
     }
 }
 

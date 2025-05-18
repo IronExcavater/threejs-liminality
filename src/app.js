@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import {EffectComposer, OutlinePass, RenderPass} from 'three/addons';
 import * as CANNON from 'cannon-es';
-import TestRoom from './TestRoom.js';
 import Player from './Player.js';
 import Maze from './Maze.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
@@ -72,19 +71,18 @@ export const debug = {
 // Level components
 export const player = new Player({
     walkSpeed: 8,
+    runSpeed: 14,
     jumpStrength: 4,
     groundFriction: 4,
     width: 0.5,
     height: 1.2,
-    footstepInterval: 5,
+    footstepInterval: 8,
     cameraBob: 0.05,
     interactionReach: 1.2,
 });
 
 export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
 scene.add(ambientLight);
-
-new TestRoom();
 
 const map = new Maze();
 map.printGrid();

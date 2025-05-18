@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import {randomRange} from './utils.js';
-import {getMaterial} from './resources.js';
-import {BoxObject, PlaneObject} from './GameObject.js';
+import {getMaterial, getModel} from './resources.js';
+import {BoxObject, ModelObject, PlaneObject} from './GameObject.js';
+import {addUpdatable, player, world} from './app.js';
+import {Tween} from "./tween.js";
 
 class Maze {
     constructor(config = {}) {
@@ -12,6 +14,8 @@ class Maze {
             mazeFillRatio: 0.8,
             mazeIterations: 1000,
             stopCarveChance: 0.5,
+
+            startingRoomSize: 4,
 
             numRooms: 2,
             roomSizeRange: [1, 32],
@@ -37,9 +41,12 @@ class Maze {
     generate() {
         this.generateMaze();
         this.generateRooms();
+        this.generateBorderWalls();
+        this.clearStartingArea();
 
         this.buildFloorCeiling();
         this.buildWalls();
+        this.buildStartingArea();
     }
 
     generateMaze() {
@@ -101,23 +108,49 @@ class Maze {
         }
     }
 
+    clearStartingArea() {
+        const origin = Math.floor(this.config.mapSize / 2);
+        const halfSize = Math.floor(this.config.startingRoomSize / 2);
+        for (let y = -halfSize; y <= halfSize; y++) {
+            for (let x = -halfSize; x <= halfSize; x++) {
+                this.grid[origin + y][origin + x] = false;
+            }
+        }
+    }
+
+    generateBorderWalls() {
+        const s = this.config.mapSize;
+        for (let i = 0; i < s; i++) {
+            this.grid[0][i] = true;
+            this.grid[s - 1][i] = true;
+            this.grid[i][0] = true;
+            this.grid[i][s - 1] = true;
+        }
+    }
+
     buildFloorCeiling() {
+        const scale = new THREE.Vector2(
+            this.config.mapSize * this.config.cellSize,
+            this.config.mapSize * this.config.cellSize);
+
         new PlaneObject({
             material: getMaterial('carpet'),
-            scale: new THREE.Vector2(this.config.mapSize, this.config.mapSize),
+            scale: scale,
             position: THREE.Vector3.zero,
             rotation: new THREE.Euler(-Math.PI / 2, 0, 0),
         });
 
         new PlaneObject({
             material: getMaterial('ceiling'),
-            scale: new THREE.Vector2(this.config.mapSize, this.config.mapSize),
+            scale: scale,
             position: new THREE.Vector3(0, this.config.wallHeight, 0),
             rotation: new THREE.Euler(Math.PI / 2, 0, 0),
         });
     }
 
     buildWalls() {
+        const origin = this.config.mapSize / 2 * this.config.cellSize;
+
         for (let y = 0; y < this.config.mapSize; y++) {
             for (let x = 0; x < this.config.mapSize; x++) {
                 if (!this.grid[y][x]) continue;
@@ -134,13 +167,55 @@ class Maze {
                     scale: new THREE.Vector3(this.config.cellSize, this.config.wallHeight, this.config.cellSize),
                     material: getMaterial('wallpaper'),
                     position: new THREE.Vector3(
-                        x * this.config.cellSize - this.config.mapSize / 2 + this.config.cellSize / 2,
+                        x * this.config.cellSize - origin,
                         this.config.wallHeight / 2,
-                        y * this.config.cellSize - this.config.mapSize / 2 + this.config.cellSize / 2,
+                        y * this.config.cellSize - origin,
                     )
                 });
             }
         }
+    }
+
+    buildStartingArea() {
+        const flashlight = new ModelObject({
+            model: getModel('flashlight').scene,
+            scale: new THREE.Vector3(0.5, 0.5, 0.5),
+            position: new THREE.Vector3(0, 0.1, -2),
+            interactRadius: 0.4,
+            interactCallback: (player) => {
+                if (player.hasFlashlight) return;
+                player.hasFlashlight = true;
+
+                world.removeBody(flashlight.body);
+                flashlight.canInteract = false;
+
+                new Tween({
+                    setter: position => flashlight.position.copy(position),
+                    startValue: flashlight.position.clone(),
+                    endValue: () => player.flashlight.position.clone(),
+                    duration: 1,
+                    onComplete: () => {
+                        flashlight.update = () => {
+                            flashlight.position.copy(player.flashlight.position);
+                            const targetPos = player.flashlight.target.getWorldPosition(new THREE.Vector3());
+                            flashlight.lookAt(targetPos);
+                        }
+                        addUpdatable(flashlight);
+                    },
+                });
+
+                new Tween({
+                    setter: quaternion => flashlight.quaternion.copy(quaternion),
+                    startValue: flashlight.quaternion.clone(),
+                    endValue: () => {
+                        const euler = new THREE.Euler().setFromQuaternion(player.flashlight.quaternion);
+                        euler.y += Math.PI;
+                        return new THREE.Quaternion().setFromEuler(euler);
+                    },
+                    duration: 1,
+                });
+            },
+        });
     }
 
     printGrid() {
