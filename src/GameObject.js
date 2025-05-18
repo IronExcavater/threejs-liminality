@@ -43,9 +43,6 @@ export class GameObject extends THREE.Object3D {
         this.quaternion.onChange(() => {
             this.body.quaternion.copy(this.quaternion);
         });
-        this.scale.onChange(() => {
-            this.setScale(this.scale);
-        });
 
         this.position.copy(position);
         this.rotation.copy(rotation);
