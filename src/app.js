@@ -1,14 +1,21 @@
 import * as THREE from 'three';
-import {EffectComposer, OutlinePass, RenderPass} from 'three/addons';
+//import {EffectComposer, OutlinePass, RenderPass } from 'three/addons';
 import * as CANNON from 'cannon-es';
 import TestRoom from './TestRoom.js';
 import Player from './Player.js';
 import Maze from './Maze.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
+<<<<<<< HEAD
 import {updateTweens} from './tween.js';
 import {updateConsole} from './console.js';
 import {preloadResources} from './resources.js';
 import './utils.js';
+=======
+import {updateConsole} from './console.js'
+import {preloadResources} from './resources.js'
+import {filmPass, bloomPass, outlinePass, renderPass, composer} from './Effects.js'
+import './utils.js'
+>>>>>>> feature/assets
 
 import '/styles/app.css';
 
@@ -39,11 +46,13 @@ export const renderer = new THREE.WebGLRenderer({
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 renderer.setAnimationLoop(() => update(clock.getDelta()));
-
+//////////////composer stuff in here////////////////
+/*
 export const composer = new EffectComposer(renderer);
 
 const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
+
 
 export const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight),
     scene, camera);
@@ -51,6 +60,16 @@ outlinePass.edgeStrength = 3;
 outlinePass.edgeThickness = 1;
 outlinePass.visibleEdgeColor.set(0xffff00);
 composer.addPass(outlinePass);
+*/
+composer.addPass(renderPass);
+composer.addPass(outlinePass);
+composer.addPass(bloomPass);
+composer.addPass(filmPass);
+
+const outlinePass = new THREE.OutlinePass();
+export {outlinePass};
+           
+////////////gonna try to move to Effects.js//////////////
 
 window.addEventListener('resize', () => windowResize());
 windowResize();
@@ -95,6 +114,8 @@ function windowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight);
     outlinePass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+    bloomPass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+    filmPass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
 }
 
 function update(delta) {
@@ -121,4 +142,13 @@ export function removeUpdatable(obj) {
     } else {
         console.warn('GameObject not found in updatables:', obj);
     }
+<<<<<<< HEAD
 }
+=======
+}
+
+
+
+
+
+>>>>>>> feature/assets
