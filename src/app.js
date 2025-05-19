@@ -1,37 +1,36 @@
 import * as THREE from 'three';
-//import {EffectComposer, OutlinePass, RenderPass } from 'three/addons';
+import {EffectComposer, OutlinePass, RenderPass} from 'three/addons';
 import * as CANNON from 'cannon-es';
 import TestRoom from './TestRoom.js';
 import Player from './Player.js';
 import Maze from './Maze.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
-<<<<<<< HEAD
 import {updateTweens} from './tween.js';
 import {updateConsole} from './console.js';
 import {preloadResources} from './resources.js';
 import './utils.js';
-=======
-import {updateConsole} from './console.js'
-import {preloadResources} from './resources.js'
-import {filmPass, bloomPass, outlinePass, renderPass, composer} from './Effects.js'
-import './utils.js'
->>>>>>> feature/assets
+
 
 import '/styles/app.css';
+
 
 const updatables = [];
 const clock = new THREE.Clock();
 
+
 export const ids = new Map([
     ['Player', 100],
 ]);
+
 
 export const collisionFilters = new Map([ // Must be powers of 2
     ['World', 1],
     ['Player', 2],
 ]);
 
+
 await preloadResources();
+
 
 // Core three.js components
 export const scene = new THREE.Scene();
@@ -40,15 +39,17 @@ export const camera = new THREE.PerspectiveCamera(
 export const audioListener = new THREE.AudioListener();
 camera.add(audioListener);
 
+
 export const renderer = new THREE.WebGLRenderer({
     antialias: true,
 });
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 renderer.setAnimationLoop(() => update(clock.getDelta()));
-//////////////composer stuff in here////////////////
-/*
+
+
 export const composer = new EffectComposer(renderer);
+
 
 const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
@@ -60,25 +61,18 @@ outlinePass.edgeStrength = 3;
 outlinePass.edgeThickness = 1;
 outlinePass.visibleEdgeColor.set(0xffff00);
 composer.addPass(outlinePass);
-*/
-composer.addPass(renderPass);
-composer.addPass(outlinePass);
-composer.addPass(bloomPass);
-composer.addPass(filmPass);
 
-const outlinePass = new THREE.OutlinePass();
-export {outlinePass};
-           
-////////////gonna try to move to Effects.js//////////////
 
 window.addEventListener('resize', () => windowResize());
 windowResize();
+
 
 // Core cannon.js components
 export const world = new CANNON.World({
     gravity: new CANNON.Vec3(0, -9.81, 0),
     frictionGravity: CANNON.Vec3.zero,
 });
+
 
 // Debuggers
 export const wireframeRenderer = new CannonDebugRenderer(scene, world);
@@ -87,6 +81,7 @@ export const debug = {
     wireframe: false,
     fullbright: false,
 };
+
 
 // Level components
 export const player = new Player({
@@ -100,13 +95,17 @@ export const player = new Player({
     interactionReach: 1.2,
 });
 
+
 export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
 scene.add(ambientLight);
 
+
 new TestRoom();
+
 
 const map = new Maze();
 map.printGrid();
+
 
 function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -114,18 +113,19 @@ function windowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight);
     outlinePass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
-    bloomPass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
-    filmPass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
 }
+
 
 function update(delta) {
     world.fixedStep();
     updateConsole();
     updateTweens(delta);
 
+
     for (const obj of updatables) obj.update(delta);
     composer.render();
 }
+
 
 export function addUpdatable(obj) {
     if (typeof obj?.update === 'function') {
@@ -135,6 +135,7 @@ export function addUpdatable(obj) {
     }
 }
 
+
 export function removeUpdatable(obj) {
     const index = updatables.indexOf(obj);
     if (index > -1) {
@@ -142,13 +143,4 @@ export function removeUpdatable(obj) {
     } else {
         console.warn('GameObject not found in updatables:', obj);
     }
-<<<<<<< HEAD
 }
-=======
-}
-
-
-
-
-
->>>>>>> feature/assets
