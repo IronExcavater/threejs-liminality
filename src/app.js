@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import {EffectComposer, OutlinePass, RenderPass} from 'three/addons';
+import {EffectComposer, RenderPass, OutlinePass, FilmPass, UnrealBloomPass, GlitchPass} from 'three/addons';
+//import {shaderEffects, outlinePass} from "./Effects.js";
 import * as CANNON from 'cannon-es';
 import TestRoom from './TestRoom.js';
 import Player from './Player.js';
@@ -47,14 +48,18 @@ renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 renderer.setAnimationLoop(() => update(clock.getDelta()));
 
-
+///////////// im leaving this here for tersting purposes im currently trying to find a way to have it ina  seperate file 
 export const composer = new EffectComposer(renderer);
-
-
 const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
+/*
+const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight), .3, .5, 0.85);    
+composer.addPass(bloomPass);
 
-
+const glitchPass = new GlitchPass();
+composer.addPass(glitchPass);
+*/
 export const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight),
     scene, camera);
 outlinePass.edgeStrength = 3;
@@ -62,6 +67,10 @@ outlinePass.edgeThickness = 1;
 outlinePass.visibleEdgeColor.set(0xffff00);
 composer.addPass(outlinePass);
 
+const filmPass = new FilmPass(.5, .9, 512, false);
+composer.addPass(filmPass);
+
+////////////////////
 
 window.addEventListener('resize', () => windowResize());
 windowResize();

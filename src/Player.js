@@ -1,11 +1,11 @@
 import * as CANNON from 'cannon-es';
 import * as THREE from 'three';
 import {PointerLockControls} from 'three/addons';
-import {world, addUpdatable, camera, scene, ids, renderer, debug, collisionFilters, audioListener,
-    outlinePass} from './app.js';
+import {world, addUpdatable, camera, scene, ids, renderer, debug, collisionFilters, audioListener, outlinePass} from './app.js';
 import {getKey, getKeys} from './input.js';
 import {getSound} from './resources.js';
 import {GameObject} from './GameObject.js';
+//import {addOutlinePass} from './Effects.js';
 
 class Player {
     constructor({

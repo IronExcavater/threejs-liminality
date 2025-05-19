@@ -5,22 +5,42 @@ import * as THREE from 'three';
             import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
             import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
             import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass.js';
-            import {scene, camera, renderer} from './app.js';
+            //import {scene, camera, renderer} from './app.js';
+ /*
+            const composer = new EffectComposer(renderer);
 
+            const renderPass = new RenderPass(scene, camera);
 
-            export const composer = new EffectComposer(renderer);
-
-            export const renderPass = new RenderPass(scene, camera);
-
-            export const bloomPass = new BloomPass(5, 4, 4, 256);
+            const bloomPass = new BloomPass(5, 4, 4, 256);
                
             
-            export const filmPass = new FilmPass(1, .5, 200, false);
+            const filmPass = new FilmPass(1, .5, 200, false);
             
-            export const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight),scene, camera);
+            const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight),scene, camera);
+            outlinePass.edgeStrength = 3;
+            outlinePass.edgeThickness = 1;
+            outlinePass.visibleEdgeColor.set(0xffff00);
+        
+
+            export function shaderEffects(renderer, scene, camera) {
+
+                composer.addPass(renderPass);
+                composer.addPass(outlinePass);
+                composer.addPass(bloomPass);
+                composer.addPass(filmPass);
+                
+            }
+*/
+
+            export function addOutlinePass(scene, camera){
+                const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight),scene, camera);
                 outlinePass.edgeStrength = 3;
                 outlinePass.edgeThickness = 1;
                 outlinePass.visibleEdgeColor.set(0xffff00);
+            }
+
+                
+
 
       
                 
