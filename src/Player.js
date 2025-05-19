@@ -85,21 +85,21 @@ class Player {
         this.flickerDuration = 0;
         this.flickerCooldown = 0;
         this.flashlightParams = {
-            power: 20,
+            power: 100,
             powerUsage: 1,
             maxIntensity: 3,
-            minIntensity: 0.8,
+            minIntensity: 1,
             maxFlicker: 0.2,
             minFlicker: 0.05,
             minCooldown: 0.05,
         };
 
-        this.flashlight = new THREE.SpotLight(0xffffff, this.flashlightParams.maxIntensity, 6, Math.PI / 3, 1, 1);
+        this.flashlight = new THREE.SpotLight(0xffffff, this.flashlightParams.maxIntensity, 20, Math.PI / 3, 1, 1);
         this.flashlight.visible = false;
         scene.add(this.flashlight);
         scene.add(this.flashlight.target);
 
-        this.glowlight = new THREE.PointLight(0xffffff, 0.4, 10, 0.8);
+        this.glowlight = new THREE.PointLight(0xffffff, 1, 20, 0.8);
         this.glowlight.position.sub(new THREE.Vector3(0, height * 0.7, 0));
         this.object.add(this.glowlight);
 
@@ -122,7 +122,6 @@ class Player {
     getVelocity() {
         // Get xz direction from input and normalise
         const isShifting = getKeys(['ShiftLeft', 'ShiftRight']);
-        console.log(isShifting);
 
         const inputDirection = new THREE.Vector3(
             getKey('KeyD') - getKey('KeyA'),

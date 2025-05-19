@@ -126,5 +126,8 @@ export const preloadResources = (async () => {
         ]),
 
         loadModel('flashlight', 'assets/models/flashlight/scene.gltf'),
+        loadModel('powerSwitch', 'assets/models/power-switch/scene.gltf'),
+        loadModel('exitDoor', 'assets/models/exit-door/scene.gltf'),
+        loadModel('ceilingLight', 'assets/models/ceiling-light/scene.gltf'),
     ]);
 });

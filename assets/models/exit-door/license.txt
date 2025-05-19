@@ -1,0 +1,11 @@
+Model Information:
+* title:	Exit Door
+* source:	https://sketchfab.com/3d-models/exit-door-c1d5f41dfb8a4213b65363307dcf1eed
+* author:	barbodoji (https://sketchfab.com/barbodoji)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Exit Door" (https://sketchfab.com/3d-models/exit-door-c1d5f41dfb8a4213b65363307dcf1eed) by barbodoji (https://sketchfab.com/barbodoji) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

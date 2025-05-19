@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import {collisionFilters, scene, world} from './app.js';
+import {collisionFilters, removeUpdatable, scene, world} from './app.js';
 import './utils.js';
 
 export class GameObject extends THREE.Object3D {
@@ -102,6 +102,18 @@ export class GameObject extends THREE.Object3D {
                 tex.repeat.set(size.x, size.z);
                 tex.needsUpdate = true;
             }
+        }
+    }
+
+    dispose() {
+        scene.remove(this);
+        world.removeBody(this.body);
+        removeUpdatable(this);
+
+        if (this.mesh.geometry) this.mesh.geometry.dispose();
+        if (this.mesh.material) {
+            if (this.mesh.material.map) this.mesh.material.map.dispose();
+            this.mesh.material.dispose();
         }
     }
 }
@@ -238,6 +250,20 @@ export class ModelObject extends GameObject {
             hit.object = this;
             intersects.push(hit);
         }
+    }
+
+    dispose() {
+        scene.remove(this);
+        world.removeBody(this.body);
+        removeUpdatable(this);
+
+        this.mesh.traverse(child => {
+            if (child.isMesh) {
+                child.geometry?.dispose();
+                if (child.material?.map) child.material.map.dispose();
+                child.material?.dispose();
+            }
+        });
     }
 }
 

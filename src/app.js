@@ -123,6 +123,6 @@ export function removeUpdatable(obj) {
     if (index > -1) {
         updatables.splice(index, 1);
     } else {
-        console.warn('GameObject not found in updatables:', obj);
+        //console.warn('GameObject not found in updatables:', obj);
     }
 }

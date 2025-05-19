@@ -2,7 +2,10 @@ import * as THREE from 'three';
 import {randomRange} from './utils.js';
 import {getMaterial} from './resources.js';
 import {BoxObject, PlaneObject} from './GameObject.js';
+import {addUpdatable, player} from './app.js';
 import { Heap } from 'heap-js'
+import PowerSwitch from "./PowerSwitch.js";
+import ExitDoor from "./ExitDoor.js";
 
 class Cell {
     constructor(x, y) {
@@ -35,26 +38,30 @@ class Maze {
             cellSize: 2,
 
             mazeFillRatio: 0.8,
-            mazeIterations: 1000,
+            mazeIterations: 50, // * mapSize
             stopCarveChance: 0.5,
 
             startingRoomSize: 4,
 
-            numRooms: 2,
-            roomSizeRange: [1, 32],
+            numRooms: 10, // per 100 cells
+            roomAreaRange: [100, 500],
 
-            numPillarRooms: 1,
-            pillarRoomSizeRange: [1, 32],
+            numPillarRooms: 1, // per 100 cells
+            pillarRoomAreaRange: [1, 32],
             pillarSpacingRange: [2, 6],
 
             wallHeight: 2,
+
+            chunkRadius: 4,
+            chunkSize: 3,
+            cullRadius: 6,
             ...config,
         }
 
         this.entities = new Map(); // key: type, value: array of {x, y, attachDir}
-        this.paths = new Map(); // key: cell.key() => string, value: cell
+        this.paths = new Map(); // key: Cell.key() => string, value: cell
 
-        this.grid = new Map();
+        this.grid = new Map(); // key: Cell.key() => string, value: true/false (true=wall)
 
         for (let y = 0; y < this.config.mapSize; y++) {
             for (let x = 0; x < this.config.mapSize; x++) {
@@ -62,21 +69,16 @@ class Maze {
             }
         }
 
-        console.log(this.grid);
-
-        this.printGrid();
+        this.chunks = new Map(); // key: Cell.key() => string, value: array of data (x, y, w, h, type) with type = box, model, etc. and model type also with data to the model name.
+        this._instantiated = new Map(); // key: Cell.key() => string, value: array of gameObjects
 
         this.generateWalls();
         this.generateRooms();
         this.clearStartingArea();
         this.generateBorderWalls();
 
-        this.printGrid();
-
         this.generateEntities(2, 10, 100); // exits
         this.generateEntities(3, 30, 50); // power breakers
-
-        this.printGrid();
 
         this.entities.forEach(arr => arr.forEach(({x, y}) => this.createPath(this.origin(), new Cell(x, y))));
 
@@ -84,6 +86,9 @@ class Maze {
 
         this.buildFloorCeiling();
         this.buildWalls();
+        this.buildEntities();
+
+        addUpdatable(this);
     }
 
     getCell(x, y) {
@@ -109,10 +114,15 @@ class Maze {
         return null;
     }
 
+    getChunk(x, y) {
+        if (!this.chunks.has(Cell.toKey(x, y))) this.chunks.set(Cell.toKey(x, y), []);
+        return this.chunks.get(Cell.toKey(x, y));
+    }
+
     generateWalls() {
         const visited = new Set();
 
-        for (let i = 0; i < this.config.mazeIterations; i++) {
+        for (let i = 0; i < this.config.mazeIterations * this.config.mapSize; i++) {
             let x = Math.floor(Math.random() * this.config.mapSize);
             let y = Math.floor(Math.random() * this.config.mapSize);
 
@@ -153,12 +163,14 @@ class Maze {
     }
 
     generateRooms() {
-        const { numRooms, roomSizeRange } = this.config;
-        for (let i = 0; i < numRooms; i++) {
-            const w = randomRange(...roomSizeRange);
-            const h = randomRange(...roomSizeRange);
+        const { numRooms, roomAreaRange } = this.config;
+        for (let i = 0; i < numRooms * this.config.mapSize / 100; i++) {
+            const size = randomRange(...roomAreaRange);
+            const w = randomRange(1, size/2);
+            const h = size / w;
             const x = randomRange(0, this.config.mapSize - w);
             const y = randomRange(0, this.config.mapSize - h);
+            console.log(`Created room of size (${w},${h}) at ()${x},${y})`);
 
             for (let c = y; c < y + h; c++) {
                 for (let r = x; r < x + w; r++) {
@@ -188,9 +200,17 @@ class Maze {
         }
     }
 
+    // the origin in 'cell' space. Used for matrices
     origin() {
         const half = Math.floor(this.config.mapSize / 2);
         return new Cell(half, half);
+    }
+
+    // The origin in world space. Returns {x, y}
+    worldOrigin() {
+        const x = this.origin().x * this.config.cellSize;
+        const y = this.origin().y * this.config.cellSize;
+        return {x, y};
     }
 
     generateEntities(type, count, spacing) {
@@ -343,6 +363,81 @@ class Maze {
         }
     }
 
+    loadChunksAround(playerX, playerY) {
+        let px = Math.floor((playerX + this.worldOrigin().x) / (this.config.chunkSize * this.config.cellSize));
+        if (isNaN(px)) px = 0;
+        let py = Math.floor((playerY + this.worldOrigin().y) / (this.config.chunkSize * this.config.cellSize));
+        if (isNaN(py)) py = 0;
+        const radius = this.config.chunkRadius;
+
+        const activeChunks = new Set();
+
+        for (let dy = -radius; dy <= radius; dy++) {
+            for (let dx = -radius; dx <= radius; dx++) {
+                const chunk = new Cell(px + dx, py + dy);
+                activeChunks.add(chunk.key());
+
+                if (this._instantiated.has(chunk.key())) {
+                    for (const obj of this._instantiated.get(chunk.key())) {
+                        if (obj.mesh) obj.mesh.visible = true;
+                    }
+                } else {
+                    this._instantiated.set(chunk.key(), []);
+                    const chunkData = this.getChunk(chunk.x, chunk.y);
+
+                    for (const item of chunkData) {
+                        let obj = null;
+
+                        if (item.type === 'box') {
+                            obj = new BoxObject({
+                                scale: new THREE.Vector3(item.w, item.h, item.d),
+                                material: getMaterial(item.material),
+                                position: new THREE.Vector3(item.x, item.y, item.z)
+                            });
+                        }
+                        else if (item.type === 'entity') {
+                            const pos = new THREE.Vector3(item.x, item.y, item.z);
+                            const rot = new THREE.Euler(0, item.rot, 0);
+
+                            if (item.entityType === 'exitDoor') {
+                                obj = new ExitDoor({
+                                    position: pos, rotation: rot
+                                });
+                            } else if (item.entityType === 'powerSwitch') {
+                                obj = new PowerSwitch({
+                                    position: pos, rotation: rot, state: item.state
+                                });
+                            }
+                        }
+
+                        if (obj) this._instantiated.get(chunk.key()).push(obj);
+                    }
+                }
+            }
+        }
+
+        // Hide all non-active chunks within cullRadius otherwise destroy
+        for (const [key, objs] of this._instantiated.entries()) {
+            const chunk = Cell.fromKey(key);
+            const dx = chunk.x - px;
+            const dy = chunk.y - py;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq > this.config.cullRadius * this.config.cullRadius) {
+                // Cull chunk completely
+                for (const obj of objs) {
+                    obj?.dispose();
+                }
+                this._instantiated.delete(key);
+            } else if (!activeChunks.has(key)) {
+                // Still within cull radius, just hide
+                for (const obj of objs) {
+                    if (obj.mesh) obj.mesh.visible = false;
+                }
+            }
+        }
+    }
+
     buildFloorCeiling() {
         const scale = new THREE.Vector2(
             this.config.mapSize * this.config.cellSize,
@@ -364,8 +459,6 @@ class Maze {
     }
 
     buildWalls() {
-        const origin = this.config.mapSize / 2 * this.config.cellSize;
-
         for (let y = 0; y < this.config.mapSize; y++) {
             for (let x = 0; x < this.config.mapSize; x++) {
                 if (!this.getCell(x, y)) continue;
@@ -378,15 +471,49 @@ class Maze {
 
                 if (!hasOpenNeighbour) continue;
 
-                const wall = new BoxObject({
-                    scale: new THREE.Vector3(this.config.cellSize, this.config.wallHeight, this.config.cellSize),
-                    material: getMaterial('wallpaper'),
-                    position: new THREE.Vector3(
-                        x * this.config.cellSize - origin,
-                        this.config.wallHeight / 2,
-                        y * this.config.cellSize - origin,
-                    )
+                const chunkX = Math.floor(x / this.config.chunkSize);
+                const chunkY = Math.floor(y / this.config.chunkSize);
+
+                this.getChunk(chunkX, chunkY).push({
+                    type: 'box',
+                    x: x * this.config.cellSize - this.worldOrigin().x,
+                    y: this.config.wallHeight / 2,
+                    z: y * this.config.cellSize - this.worldOrigin().y,
+                    w: this.config.cellSize,
+                    h: this.config.wallHeight,
+                    d: this.config.cellSize,
+                    material: 'wallpaper'
                 });
+            }
+        }
+    }
+
+    buildEntities() {
+        for (const [type, list] of this.entities.entries()) {
+            for (const { x, y, dir } of list) {
+                const chunkX = Math.floor(x / this.config.chunkSize);
+                const chunkY = Math.floor(y / this.config.chunkSize);
+
+                const entityType =
+                    type === 2 ? 'exitDoor' :
+                    type === 3 ? 'powerSwitch' :
+                    null;
+
+                const baseX = x * this.config.cellSize - this.worldOrigin().x;
+                const baseZ = y * this.config.cellSize - this.worldOrigin().y;
+
+                const dx = dir[0] * this.config.cellSize / 2;
+                const dz = dir[1] * this.config.cellSize / 2;
+
+                this.getChunk(chunkX, chunkY).push({
+                    type: 'entity',
+                    entityType: entityType,
+                    state: false,
+                    x: baseX + dx,
+                    y: this.config.wallHeight / 2,
+                    z: baseZ + dz,
+                    rot: Math.atan2(dir[0], dir[1]),
+                })
             }
         }
     }
@@ -396,12 +523,17 @@ class Maze {
         for (let y = 0; y < this.config.mapSize; y++) {
             for (let x = 0; x < this.config.mapSize; x++) {
                 const entity = this.getEntity(x, y);
-                if (entity !== null) output += entity.type.toString();
+                if (entity !== null) output += entity.type.toString()[0];
                 else output += (this.getCell(x, y) ? '█' : ' ');
             }
             output += '\n';
         }
         console.log(output);
+    }
+
+    update(delta) {
+        const playerPosition = player.object.position;
+        this.loadChunksAround(playerPosition.x, playerPosition.z);
     }
 }
 

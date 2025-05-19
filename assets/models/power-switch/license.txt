@@ -1,0 +1,11 @@
+Model Information:
+* title:	Lever Power Switch
+* source:	https://sketchfab.com/3d-models/lever-power-switch-374608f75c114b8a9bf41dbc02c51c50
+* author:	Sam Feng (https://sketchfab.com/fengyuan20000303)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Lever Power Switch" (https://sketchfab.com/3d-models/lever-power-switch-374608f75c114b8a9bf41dbc02c51c50) by Sam Feng (https://sketchfab.com/fengyuan20000303) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
