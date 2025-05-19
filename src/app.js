@@ -10,6 +10,7 @@ import {preloadResources} from './resources.js';
 import './utils.js';
 
 import '/styles/app.css';
+import Flashlight from "./Flashlight.js";
 
 const updatables = [];
 const clock = new THREE.Clock();
@@ -85,7 +86,12 @@ export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
 scene.add(ambientLight);
 
 const map = new Maze();
-map.printGrid();
+
+const flashlight = new Flashlight({
+    scale: new THREE.Vector3(0.5, 0.5, 0.5),
+    position: new THREE.Vector3(0, 0.1, -2),
+    rotation: new THREE.Euler(),
+});
 
 function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
