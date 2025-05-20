@@ -82,22 +82,6 @@ class Player {
 
 
         this.hasFlashlight = false;
-        this.flickerDuration = 0;
-        this.flickerCooldown = 0;
-        this.flashlightParams = {
-            power: 100,
-            powerUsage: 1,
-            maxIntensity: 3,
-            minIntensity: 1,
-            maxFlicker: 0.2,
-            minFlicker: 0.05,
-            minCooldown: 0.05,
-        };
-
-        this.flashlight = new THREE.SpotLight(0xffffff, this.flashlightParams.maxIntensity, 20, Math.PI / 3, 1, 1);
-        this.flashlight.visible = false;
-        scene.add(this.flashlight);
-        scene.add(this.flashlight.target);
 
         this.glowlight = new THREE.PointLight(0xffffff, 1, 20, 0.8);
         this.glowlight.position.sub(new THREE.Vector3(0, height * 0.7, 0));
@@ -210,6 +194,7 @@ class Player {
 
     handleFlashlight(delta) {
         if (!this.hasFlashlight) return;
+        return;
 
         if (getKey('KeyF', true)) {
             this.flashlight.visible = !this.flashlight.visible;

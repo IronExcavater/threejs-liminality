@@ -1,23 +1,33 @@
-import * as THREE from "three";
-import {ModelObject} from "./GameObject.js";
-import {getModel} from "./resources.js";
-import {addUpdatable} from "./app.js";
+import * as THREE from 'three';
+import {ModelObject} from './GameObject.js';
+import {getModel, getSound} from './resources.js';
+import {addUpdatable, audioListener, getPower, increasePower, maze} from './app.js';
 
 class PowerSwitch extends ModelObject {
     constructor({
+        scale = new THREE.Vector3(0.5, 0.5, 0.5),
         position = new THREE.Vector3.zero,
         rotation = new THREE.Euler.identity,
         state = false,
     }) {
         super({
-            model: getModel('powerSwitch').scene,
-            scale: new THREE.Vector3(1, 1, 1),
+            model: getModel('powerSwitch'),
+            scale: scale,
             position: position,
             rotation: rotation,
             interactRadius: 0.4,
         });
 
+        const target = this.mesh.getObjectByName('Object_10');
+        this.mixer = new THREE.AnimationMixer(target); // Slightly dodgy as the animation should be on root
+
+        this.sound = new THREE.PositionalAudio(audioListener);
+        this.sound.setRefDistance(10);
+        this.sound.setVolume(10);
+        this.add(this.sound);
+
         this.state = state;
+        if (state) this.activateAnimation();
         this.interactCallback = this.onInteract.bind(this);
         this.canInteract = true;
 
@@ -25,11 +35,46 @@ class PowerSwitch extends ModelObject {
     }
 
     onInteract(player) {
-        console.log('interacted with power switch');
+        if (this.state) return;
+
+        this.state = true;
+        increasePower();
+        console.log("Turn switch on, total power: " + getPower());
+
+        this.sound.setBuffer(getSound(getPower() === 5 ? 'powerOn' : 'switch'));
+        this.sound.play();
+
+        const chunk = maze.worldToChunk(this.position.x, this.position.z);
+        const chunkData = maze.getChunk(chunk.x, chunk.y);
+
+        for (const item of chunkData) {
+            if (item.entityType === 'powerSwitch') {
+                const dx = Math.abs(item.x - this.position.x);
+                const dz = Math.abs(item.y - this.position.y);
+                if (dx < 0.01 && dz < 0.01) {
+                    item.state = true;
+                    break;
+                }
+            }
+        }
+
+        this.activateAnimation();
     }
 
-    update() {
+    activateAnimation() {
+        if (this.animations.length > 0) {
+            const clip = THREE.AnimationClip.findByName(this.animations, 'Activate');
+            if (clip) {
+                const action = this.mixer.clipAction(clip);
+                action.setLoop(THREE.LoopOnce);
+                action.clampWhenFinished = true;
+                action.play();
+            }
+        }
+    }
 
+    update(delta) {
+        this.mixer.update(delta);
     }
 }
 
