@@ -28,3 +28,14 @@ player.object.add(ambientSound); //sound follows player.
 
 // Weeping angel sound. Only when angel is moving.
 const angelSound = new THREE.PositionalAudio(audioListener);
+angelSound.load('assets/sounds/angel.mp3',
+    function(buffer){        
+        angelSound.setBuffer(buffer);
+        angelSound.setRefDistance(20);
+        angelSound.setLoop(true);
+        angelSound.setVolume(0.5);
+        angelSound.play();
+    }
+);
+
+
