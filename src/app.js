@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import {EffectComposer, RenderPass, OutlinePass, FilmPass, UnrealBloomPass, GlitchPass} from 'three/addons';
-//import {shaderEffects, outlinePass} from "./Effects.js";
+import {EffectComposer} from 'three/addons';
+import {addOutlinePass, addRenderPass, addFilmPass, addGlitchPass, turnOffGlitch, addBloomPass, addRGBShift, addVignette} from "./Effects.js";
 import * as CANNON from 'cannon-es';
 import TestRoom from './TestRoom.js';
 import Player from './Player.js';
@@ -13,6 +13,7 @@ import './utils.js';
 
 
 import '/styles/app.css';
+import { bool } from 'three/tsl';
 
 
 const updatables = [];
@@ -40,26 +41,48 @@ export const camera = new THREE.PerspectiveCamera(
 export const audioListener = new THREE.AudioListener();
 camera.add(audioListener);
 
-
+// Shaders
 export const renderer = new THREE.WebGLRenderer({
     antialias: true,
 });
+const composer = new EffectComposer(renderer);
+const renderPass = addRenderPass(scene, camera);
+const filmPass = addFilmPass();
+const glitchPass = addGlitchPass();
+const bloomPass = addBloomPass(window);
+const rgbPass = addRGBShift();
+const vignette = addVignette();
+export const outlinePass = addOutlinePass(scene, camera);
+
+composer.addPass(renderPass);
+composer.addPass(glitchPass);
+turnOffGlitch(glitchPass);
+composer.addPass(bloomPass);
+composer.addPass(rgbPass);
+composer.addPass(vignette);
+composer.addPass(outlinePass);
+composer.addPass(filmPass);
+
+window.addEventListener('resize', () => windowResize());
+windowResize();
+
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 renderer.setAnimationLoop(() => update(clock.getDelta()));
 
+/*
 ///////////// im leaving this here for tersting purposes im currently trying to find a way to have it ina  seperate file 
 export const composer = new EffectComposer(renderer);
 const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
-/*
+
 const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight), .3, .5, 0.85);    
 composer.addPass(bloomPass);
 
 const glitchPass = new GlitchPass();
 composer.addPass(glitchPass);
-*/
+
 export const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight),
     scene, camera);
 outlinePass.edgeStrength = 3;
@@ -70,10 +93,10 @@ composer.addPass(outlinePass);
 const filmPass = new FilmPass(.5, .9, 512, false);
 composer.addPass(filmPass);
 
-////////////////////
+//////////////////// */
 
-window.addEventListener('resize', () => windowResize());
-windowResize();
+
+
 
 
 // Core cannon.js components

@@ -5,7 +5,6 @@ import {world, addUpdatable, camera, scene, ids, renderer, debug, collisionFilte
 import {getKey, getKeys} from './input.js';
 import {getSound} from './resources.js';
 import {GameObject} from './GameObject.js';
-//import {addOutlinePass} from './Effects.js';
 
 class Player {
     constructor({
