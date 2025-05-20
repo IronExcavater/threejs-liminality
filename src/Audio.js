@@ -5,24 +5,26 @@ each time you play audio to make it positional
 
 import { audioListener } from "./app.js";
 
-//Ambient sound
+//Positional ambient sound.
 const ambientSound = new THREE.PositionalAudio(audioListener);
 ambientSound.load('assets/sounds/ambient.mp3',
     function(buffer){
+        ambientSound.position.set(1, 0, 0); // offset from player
         ambientSound.setBuffer(buffer);
         ambientSound.setRefDistance(20);
-        //ambientSound.setLoop(true);
+        ambientSound.setLoop(true);
         ambientSound.setVolume(0.5);
         ambientSound.play();
     }
 //additional functions as needed.
 );
 
-player.object.add(ambientSound);
+player.object.add(ambientSound); //sound follows player.
 
 
 
 
 
 
-// Weeping angel sound
+// Weeping angel sound. Only when angel is moving.
+const angelSound = new THREE.PositionalAudio(audioListener);
