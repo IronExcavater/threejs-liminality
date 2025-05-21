@@ -4,7 +4,7 @@
  * each time you play audio to make it positional
  */
 
-import { audioListener, player } from "./app.js";
+import { audioListener } from "./app.js";
 
 //Positional ambient sound.
 const ambientSound = new THREE.PositionalAudio(audioListener);
@@ -20,11 +20,6 @@ ambientSound.load('assets/sounds/ambient.mp3', //ambient.mp3 as placeholder.
 //additional functions as needed.
 );
 
-player.object.add(ambientSound); 
-/**
- * sound follows player.
- * imported player from app class to tie ambient sound to player.
- */
 
 
 
@@ -40,9 +35,7 @@ angelSound.load('assets/sounds/angel.mp3', // angel.mp3 as placeholder.
     }
 );
 
-angel.object.add(angelSound); //sound follows angel.
-
-export {angelSound};
+export { ambientSound, angelSound };
 /**
  * export angelSound to be used externally.
  */

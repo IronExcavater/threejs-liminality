@@ -9,7 +9,7 @@ import {updateConsole} from './console.js';
 import Flashlight from './Flashlight.js';
 import WeepingAngel from './WeepingAngel.js';
 import {preloadResources} from './resources.js';
-import { angelSound } from './Audio.js'; // importing the sound file.
+import { ambientSound, angelSound } from './Audio.js'; // importing ambient sound
 import './utils.js';
 
 import '/styles/app.css';
@@ -110,6 +110,8 @@ const weepingAngel = new WeepingAngel({
     position: new THREE.Vector3(1, 0.75, 1),
 });
 weepingAngel.add(angelSound); //adding sound to weeping angel.
+
+player.object.add(ambientSound); //adding sound to player.
 
 fadeOut({});
 
