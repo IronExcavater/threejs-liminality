@@ -3,7 +3,7 @@ I’d prefer if you add it as separate file and then manipulate it possible rela
 each time you play audio to make it positional
 */
 
-import { audioListener } from "./app.js";
+import { audioListener, player } from "./app.js";
 
 //Positional ambient sound.
 const ambientSound = new THREE.PositionalAudio(audioListener);
