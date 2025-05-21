@@ -6,11 +6,13 @@ import Maze from './Maze.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
 import {updateTweens} from './tween.js';
 import {updateConsole} from './console.js';
+import Flashlight from './Flashlight.js';
+import WeepingAngel from './WeepingAngel.js';
 import {preloadResources} from './resources.js';
 import './utils.js';
 
 import '/styles/app.css';
-import Flashlight from "./Flashlight.js";
+import {fadeOut} from "./transition.js";
 
 const updatables = [];
 const clock = new THREE.Clock();
@@ -37,6 +39,7 @@ export const renderer = new THREE.WebGLRenderer({
     antialias: true,
 });
 renderer.shadowMap.enabled = true;
+renderer.setClearColor(0x000000);
 document.body.appendChild(renderer.domElement);
 renderer.setAnimationLoop(() => update(clock.getDelta()));
 
@@ -85,13 +88,28 @@ export const player = new Player({
 export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
 scene.add(ambientLight);
 
-const map = new Maze();
+export const maze = new Maze();
+
+let activatedPower = 0;
+
+export function increasePower() {
+    activatedPower++;
+}
+
+export function getPower() {
+    return activatedPower;
+}
 
 const flashlight = new Flashlight({
-    scale: new THREE.Vector3(0.5, 0.5, 0.5),
-    position: new THREE.Vector3(0, 0.1, -2),
+    position: new THREE.Vector3(0, 0.05, -2),
     rotation: new THREE.Euler(),
 });
+
+const weepingAngle = new WeepingAngel({
+    position: new THREE.Vector3(1, 0.75, 1),
+});
+
+fadeOut({});
 
 function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;

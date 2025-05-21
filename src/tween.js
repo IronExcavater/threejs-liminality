@@ -25,13 +25,13 @@ export const Easing = {
 
 export class Tween {
     constructor({
-                    setter,
-                    startValue,
-                    endValue,
-                    duration,
-                    easing = Easing.EaseInOutCubic,
-                    onComplete = () => {},
-                }) {
+        setter,
+        startValue,
+        endValue,
+        duration,
+        easing = Easing.EaseInOutCubic,
+        onComplete = () => {},
+    }) {
         this.setter = setter;
         this.startValue = startValue;
         this.endValue = endValue;
