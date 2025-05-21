@@ -9,6 +9,7 @@ import {updateConsole} from './console.js';
 import Flashlight from './Flashlight.js';
 import WeepingAngel from './WeepingAngel.js';
 import {preloadResources} from './resources.js';
+import { angelSound } from './Audio.js'; // importing the sound file.
 import './utils.js';
 
 import '/styles/app.css';
@@ -105,9 +106,10 @@ const flashlight = new Flashlight({
     rotation: new THREE.Euler(),
 });
 
-const weepingAngle = new WeepingAngel({
+const weepingAngel = new WeepingAngel({
     position: new THREE.Vector3(1, 0.75, 1),
 });
+weepingAngel.add(angelSound); //adding sound to weeping angel.
 
 fadeOut({});
 
@@ -126,6 +128,17 @@ function update(delta) {
 
     for (const obj of updatables) obj.update(delta);
     composer.render();
+
+    // angelSound play only when moving.
+    if (weepingAngel.isMoving()) {
+        if (!angelSound.isPlaying) {
+            angelSound.play();
+        }
+    } else {
+        if (angelSound.isPlaying) {
+            angelSound.stop();
+        }
+    }
 }
 
 export function addUpdatable(obj) {

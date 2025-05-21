@@ -1,13 +1,14 @@
-/*The camera already has an audiolistener you can reference anywhere in the project as it is exported from app. 
-I’d prefer if you add it as separate file and then manipulate it possible relative to player 
-each time you play audio to make it positional
-*/
+/**
+ * The camera already has an audiolistener you can reference anywhere in the project as it is exported from app. 
+ * I’d prefer if you add it as separate file and then manipulate it possible relative to player 
+ * each time you play audio to make it positional
+ */
 
 import { audioListener, player } from "./app.js";
 
 //Positional ambient sound.
 const ambientSound = new THREE.PositionalAudio(audioListener);
-ambientSound.load('assets/sounds/ambient.mp3',
+ambientSound.load('assets/sounds/ambient.mp3', //ambient.mp3 as placeholder.
     function(buffer){
         ambientSound.position.set(1, 0, 0); // offset from player
         ambientSound.setBuffer(buffer);
@@ -19,13 +20,17 @@ ambientSound.load('assets/sounds/ambient.mp3',
 //additional functions as needed.
 );
 
-player.object.add(ambientSound); //sound follows player.
+player.object.add(ambientSound); 
+/**
+ * sound follows player.
+ * imported player from app class to tie ambient sound to player.
+ */
 
 
 
 // Weeping angel sound. Only when angel is moving.
 const angelSound = new THREE.PositionalAudio(audioListener);
-angelSound.load('assets/sounds/angel.mp3',
+angelSound.load('assets/sounds/angel.mp3', // angel.mp3 as placeholder.
     function(buffer){        
         angelSound.setBuffer(buffer);
         angelSound.setRefDistance(20);
@@ -37,13 +42,7 @@ angelSound.load('assets/sounds/angel.mp3',
 
 angel.object.add(angelSound); //sound follows angel.
 
-/*
-import angel and tie it to angelSound. 
-
-if (angel.isMoving) {
-    if (!angelSound.isPlaying) angelSound.play();
-} else {
-    if (angelSound.isPlaying) angelSound.stop();
-}
-
-*/
+export {angelSound};
+/**
+ * export angelSound to be used externally.
+ */
