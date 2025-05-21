@@ -8,7 +8,7 @@ import {GameObject} from './GameObject.js';
 
 class Player {
     constructor({
-        walkSpeed, jumpStrength, groundFriction,
+        walkSpeed, runSpeed, jumpStrength, groundFriction,
         width, height,
         footstepInterval, cameraBob,
         interactionReach
@@ -16,6 +16,7 @@ class Player {
         this.contactNormal = new CANNON.Vec3();
         this.isGrounded = false;
         this.walkSpeed = walkSpeed;
+        this.runSpeed = runSpeed;
         this.jumpStrength = jumpStrength;
         this.groundFriction = groundFriction;
         this.cameraOffset = height-width/2;
@@ -80,24 +81,8 @@ class Player {
 
 
         this.hasFlashlight = false;
-        this.flickerDuration = 0;
-        this.flickerCooldown = 0;
-        this.flashlightParams = {
-            power: 20,
-            powerUsage: 1,
-            maxIntensity: 3,
-            minIntensity: 0.8,
-            maxFlicker: 0.2,
-            minFlicker: 0.05,
-            minCooldown: 0.05,
-        };
 
-        this.flashlight = new THREE.SpotLight(0xffffff, this.flashlightParams.maxIntensity, 6, Math.PI / 3, 1, 1);
-        this.flashlight.visible = false;
-        scene.add(this.flashlight);
-        scene.add(this.flashlight.target);
-
-        this.glowlight = new THREE.PointLight(0xffffff, 0.4, 10, 0.8);
+        this.glowlight = new THREE.PointLight(0xffffff, 1, 20, 0.8);
         this.glowlight.position.sub(new THREE.Vector3(0, height * 0.7, 0));
         this.object.add(this.glowlight);
 
@@ -123,15 +108,15 @@ class Player {
 
         const inputDirection = new THREE.Vector3(
             getKey('KeyD') - getKey('KeyA'),
-            getKey('Space') - isShifting,
+            getKey('Space') - getKey('KeyC'),
             getKey('KeyS') - getKey('KeyW')
         ).normalize();
 
         // Get max velocity by multiply direction by speed depending on conditions
         const velocity = new THREE.Vector3(
-            inputDirection.x * this.walkSpeed * 0.8,
+            inputDirection.x * (isShifting ? this.runSpeed : this.walkSpeed),
             inputDirection.y * this.walkSpeed,
-            inputDirection.z * this.walkSpeed * (inputDirection.z < 0 ? (isShifting ? 1.5 : 1) : 0.5)
+            inputDirection.z * (isShifting ? this.runSpeed : this.walkSpeed)
         );
 
         // Transform local to world space vector (remove yVel from impacting quaternion)
@@ -208,6 +193,7 @@ class Player {
 
     handleFlashlight(delta) {
         if (!this.hasFlashlight) return;
+        return;
 
         if (getKey('KeyF', true)) {
             this.flashlight.visible = !this.flashlight.visible;
@@ -238,6 +224,21 @@ class Player {
         } else {
             this.flashlight.intensity = this.flashlightParams.maxIntensity;
         }
+    }
+
+    setPosition(vector3) {
+        this.body.position.copy(vector3.toCannon());
+        this.object.position.copy(vector3);
+        this.updateCamera();
+    }
+
+    setRotation(vector3) {
+        this.object.rotation.copy(vector3);
+        this.body.quaternion.copy(new CANNON.Quaternion().setFromEuler(
+            vector3.x,
+            vector3.y,
+            vector3.z
+        ));
     }
 }
 
