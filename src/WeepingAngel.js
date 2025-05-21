@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import {ModelObject} from './GameObject.js';
-import {getModel} from './resources.js';
-import {addUpdatable, ids, player, scene} from './app.js';
+import {getModel, getSound} from './resources.js';
+import {addUpdatable, ambientSound, audioListener, ids, player, scene} from './app.js';
 import {randomRange} from "./utils.js";
-import {fadeIn, fadeOut} from "./transition.js";
+import {fadeIn, fadeOut} from './transition.js';
 
 class WeepingAngel extends ModelObject {
     constructor({
@@ -23,11 +23,17 @@ class WeepingAngel extends ModelObject {
         });
 
         this.state = 'inactive';
+        this.hasMoved = false;
         this.poses = {
             far: this.mesh.getObjectByName('angel-far'),
             mid: this.mesh.getObjectByName('angel-mid'),
             close: this.mesh.getObjectByName('angel-close'),
         }
+
+        this.sound = new THREE.PositionalAudio(audioListener);
+        this.sound.setRefDistance(5);
+        this.sound.setVolume(10);
+        this.add(this.sound);
 
         this._meshes = [];
         this.traverse(obj => {
@@ -48,6 +54,7 @@ class WeepingAngel extends ModelObject {
 
             if (other.id === ids.get('Player')) {
                 console.log("Weeping Angel collided with player. Teleporting player...");
+                ambientSound.playGlobalSound('riser');
                 fadeIn({
                     onComplete: () => {
                         player.setPosition(new THREE.Vector3(0, 0, 0));
@@ -89,11 +96,19 @@ class WeepingAngel extends ModelObject {
             case 'active':
                 if (this.isOccluded() || !this.isSeenByPlayer()) {
                     this.velocity = this.moveTowardsPlayer(delta);
+                    this.hasMoved = true;
 
                     if (distance > 6) this.setPose('mid');
                     else this.setPose('close');
                 }
-                else this.velocity = new THREE.Vector3();
+                else {
+                    this.velocity = new THREE.Vector3();
+                    if (this.hasMoved) {
+                        this.sound.setBuffer(getSound('weepingAngel'));
+                        this.sound.play();
+                        this.hasMoved = false;
+                    }
+                }
                 break;
         }
 

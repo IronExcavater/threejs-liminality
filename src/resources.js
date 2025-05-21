@@ -126,6 +126,21 @@ export const preloadResources = (async () => {
             'assets/sounds/step3.wav',
             'assets/sounds/step4.wav',
         ]),
+
+        loadSound('ambient', [
+            'assets/sounds/ambient/ghost.wav',
+            'assets/sounds/ambient/growling.wav',
+            'assets/sounds/ambient/lurking.wav',
+            'assets/sounds/ambient/musicBox.wav',
+            'assets/sounds/ambient/scrape.wav',
+            'assets/sounds/ambient/scream.wav',
+            'assets/sounds/ambient/sensor.wav',
+        ]),
+
+        loadSound('alarm', 'assets/sounds/alarm.wav'),
+        loadSound('riser', 'assets/sounds/riser.wav'),
+        loadSound('weepingAngel', 'assets/sounds/weepingAngel.wav'),
+
         loadSound('doorOpen', 'assets/sounds/doorOpen.wav'),
         loadSound('doorKnock', 'assets/sounds/doorKnock.wav'),
         loadSound('powerOn', 'assets/sounds/powerOn.wav'),

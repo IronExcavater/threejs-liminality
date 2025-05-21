@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import {ModelObject} from './GameObject.js';
 import {getModel, getSound} from './resources.js';
-import {addUpdatable, audioListener, getPower, ids, player} from './app.js';
-import {fadeIn, fadeOut} from "./transition.js";
+import {addUpdatable, audioListener, canEscape, ids} from './app.js';
+import {fadeIn} from "./transition.js";
 
 class ExitDoor extends ModelObject {
     constructor({
@@ -22,11 +22,11 @@ class ExitDoor extends ModelObject {
         this.mixer = new THREE.AnimationMixer(target);
 
         this.sound = new THREE.PositionalAudio(audioListener);
-        this.sound.setRefDistance(10);
+        this.sound.setRefDistance(5);
         this.sound.setVolume(10);
         this.add(this.sound);
 
-        this.state = getPower() >= 5;
+        this.state = canEscape();
         if (this.state) this.activateAnimation();
         this.interactCallback = this.onInteract.bind(this);
         this.canInteract = true;
@@ -80,7 +80,7 @@ class ExitDoor extends ModelObject {
     update(delta) {
         this.mixer.update(delta);
 
-        const newState = getPower() > 5;
+        const newState = canEscape;
         if (!this.state && newState) {
             this.activateAnimation();
         }

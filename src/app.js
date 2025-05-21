@@ -8,12 +8,12 @@ import {updateTweens} from './tween.js';
 import {updateConsole} from './console.js';
 import Flashlight from './Flashlight.js';
 import WeepingAngel from './WeepingAngel.js';
-import {preloadResources} from './resources.js';
-import { ambientSound, angelSound } from './Audio.js'; // importing ambient sound
+import {getSound, preloadResources} from './resources.js';
+import {fadeOut} from './transition.js';
+import AmbientSound from './ambientSound.js';
 import './utils.js';
 
 import '/styles/app.css';
-import {fadeOut} from "./transition.js";
 
 const updatables = [];
 const clock = new THREE.Clock();
@@ -86,6 +86,8 @@ export const player = new Player({
     interactionReach: 1.2,
 });
 
+scene.fog = new THREE.Fog(0x000000, 10, 50);
+
 export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
 scene.add(ambientLight);
 
@@ -93,12 +95,24 @@ export const maze = new Maze();
 
 let activatedPower = 0;
 
+export const escapePower = 5;
+
 export function increasePower() {
     activatedPower++;
+    if (activatedPower === escapePower) ambientSound.playGlobalSound('alarm');
+
+    if (activatedPower > escapePower) return;
+    weepingAngels.push(new WeepingAngel({
+        position: new THREE.Vector3(0, 0.75, 10000),
+    }));
 }
 
 export function getPower() {
     return activatedPower;
+}
+
+export function canEscape() {
+    return activatedPower >= escapePower;
 }
 
 const flashlight = new Flashlight({
@@ -106,14 +120,11 @@ const flashlight = new Flashlight({
     rotation: new THREE.Euler(),
 });
 
-const weepingAngel = new WeepingAngel({
-    position: new THREE.Vector3(1, 0.75, 1),
-});
-weepingAngel.add(angelSound); //adding sound to weeping angel.
-
-player.object.add(ambientSound); //adding sound to player.
-
+const weepingAngels = [];
 fadeOut({});
+
+export const ambientSound = new AmbientSound();
+ambientSound.startLoop();
 
 function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -130,17 +141,6 @@ function update(delta) {
 
     for (const obj of updatables) obj.update(delta);
     composer.render();
-
-    // angelSound play only when moving.
-    if (weepingAngel.isMoving()) {
-        if (!angelSound.isPlaying) {
-            angelSound.play();
-        }
-    } else {
-        if (angelSound.isPlaying) {
-            angelSound.stop();
-        }
-    }
 }
 
 export function addUpdatable(obj) {

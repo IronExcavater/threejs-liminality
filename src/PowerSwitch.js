@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {ModelObject} from './GameObject.js';
 import {getModel, getSound} from './resources.js';
-import {addUpdatable, audioListener, getPower, increasePower, maze} from './app.js';
+import {addUpdatable, audioListener, canEscape, getPower, increasePower, maze} from './app.js';
 
 class PowerSwitch extends ModelObject {
     constructor({
@@ -41,7 +41,7 @@ class PowerSwitch extends ModelObject {
         increasePower();
         console.log("Turn switch on, total power: " + getPower());
 
-        this.sound.setBuffer(getSound(getPower() === 5 ? 'powerOn' : 'switch'));
+        this.sound.setBuffer(getSound(canEscape() ? 'powerOn' : 'switch'));
         this.sound.play();
 
         const chunk = maze.worldToChunk(this.position.x, this.position.z);
