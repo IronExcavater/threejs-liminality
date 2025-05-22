@@ -22,6 +22,10 @@ class Flashlight extends ModelObject {
         this.interactCallback = this.onInteract.bind(this);
         this.canInteract = true;
 
+        this.glowLight = new THREE.PointLight(0xffffff, 0.3, 1, 2);
+        this.add(this.glowLight);
+        this.glowLight.position.set(0, 100, 0);
+
         this._spot = new THREE.SpotLight(0xffffff, 3, 20, Math.PI / 3, 1, 1);
         this._spot.target.position.set(0, 0, 2);
         this._spot.visible = false;
@@ -30,7 +34,7 @@ class Flashlight extends ModelObject {
 
         this.sound = new THREE.PositionalAudio(audioListener);
         this.sound.setRefDistance(10);
-        this.sound.setVolume(10);
+        this.sound.setVolume(1);
         this.add(this.sound);
 
         this.equipped = false;
@@ -48,6 +52,13 @@ class Flashlight extends ModelObject {
     onInteract(player) {
         world.removeBody(this.body);
         this.canInteract = false;
+
+        new Tween({
+            setter: intensity => this.glowLight.intensity = intensity,
+            startValue: this.glowLight.intensity,
+            endValue: 0,
+            duration: 1,
+        });
 
         new Tween({
             setter: position => this.position.copy(position),

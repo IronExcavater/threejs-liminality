@@ -23,7 +23,7 @@ class ExitDoor extends ModelObject {
 
         this.sound = new THREE.PositionalAudio(audioListener);
         this.sound.setRefDistance(5);
-        this.sound.setVolume(10);
+        this.sound.setVolume(1);
         this.add(this.sound);
 
         this.state = canEscape();
@@ -80,8 +80,9 @@ class ExitDoor extends ModelObject {
     update(delta) {
         this.mixer.update(delta);
 
-        const newState = canEscape;
+        const newState = canEscape();
         if (!this.state && newState) {
+            this.state = true;
             this.activateAnimation();
         }
     }

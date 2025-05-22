@@ -67,7 +67,7 @@ class Player {
 
         this.sound = new THREE.PositionalAudio(audioListener);
         this.sound.setRefDistance(10);
-        this.sound.setVolume(10);
+        this.sound.setVolume(1);
         this.object.add(this.sound);
 
         this.lookControls = new PointerLockControls(this.object, renderer.domElement);

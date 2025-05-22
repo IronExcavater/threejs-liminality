@@ -22,8 +22,8 @@ class PowerSwitch extends ModelObject {
         this.mixer = new THREE.AnimationMixer(target); // Slightly dodgy as the animation should be on root
 
         this.sound = new THREE.PositionalAudio(audioListener);
-        this.sound.setRefDistance(10);
-        this.sound.setVolume(10);
+        this.sound.setRefDistance(5);
+        this.sound.setVolume(1);
         this.add(this.sound);
 
         this.state = state;

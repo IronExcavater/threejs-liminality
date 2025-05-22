@@ -23,6 +23,7 @@ class WeepingAngel extends ModelObject {
         });
 
         this.state = 'inactive';
+        this.isMoving = false;
         this.hasMoved = false;
         this.poses = {
             far: this.mesh.getObjectByName('angel-far'),
@@ -32,7 +33,7 @@ class WeepingAngel extends ModelObject {
 
         this.sound = new THREE.PositionalAudio(audioListener);
         this.sound.setRefDistance(5);
-        this.sound.setVolume(10);
+        this.sound.setVolume(1);
         this.add(this.sound);
 
         this._meshes = [];
@@ -52,7 +53,7 @@ class WeepingAngel extends ModelObject {
         this.body.addEventListener('collide', (e) => {
             const other = e.body;
 
-            if (other.id === ids.get('Player')) {
+            if (other.id === ids.get('Player') && this.isMoving) {
                 console.log("Weeping Angel collided with player. Teleporting player...");
                 ambientSound.playGlobalSound('riser');
                 fadeIn({
@@ -75,6 +76,7 @@ class WeepingAngel extends ModelObject {
 
         this.body.velocity.copy(this.velocity.toCannon());
         this.position.copy(this.body.position.toThree());
+        this.isMoving = false;
 
         switch (this.state) {
             case 'inactive':
@@ -96,6 +98,7 @@ class WeepingAngel extends ModelObject {
             case 'active':
                 if (this.isOccluded() || !this.isSeenByPlayer()) {
                     this.velocity = this.moveTowardsPlayer(delta);
+                    this.isMoving = true;
                     this.hasMoved = true;
 
                     if (distance > 6) this.setPose('mid');

@@ -6,14 +6,14 @@ import {Tween} from "./tween.js";
 
 class AmbientSound {
     constructor(
-        distanceRange = [10, 20],
-        volumeRange = [2, 10],
-        delayRange = [1000, 5000]
+        distanceRange = [30, 60],
+        volumeRange = [0.3, 1],
+        delayRange = [10000, 20000]
     ) {
         this.object = new THREE.Object3D();
 
         this.globalSound = new THREE.Audio(audioListener);
-        this.globalSound.setVolume(10);
+        this.globalSound.setVolume(1);
         this.object.add(this.globalSound);
 
         this.positionalSound = new THREE.PositionalAudio(audioListener);
