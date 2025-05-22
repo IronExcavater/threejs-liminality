@@ -60,12 +60,12 @@ rgbPass.uniforms['amount'].value = 0.001;
 const vignettePass = new addVignette();
 
 composer.addPass(renderPass);
-composer.addPass(glitchPass);
-turnOffGlitch(glitchPass);
+composer.addPass(bloomPass);
 composer.addPass(filmPass);
 composer.addPass(rgbPass);
 composer.addPass(outlinePass);
-composer.addPass(bloomPass);
+composer.addPass(glitchPass);
+turnOffGlitch(glitchPass);
 composer.addPass(vignettePass);
 
 
