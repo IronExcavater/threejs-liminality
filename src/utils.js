@@ -58,6 +58,13 @@ function addOnChange(Class, methodnames = []) {
     }
 }
 
-addOnChange(THREE.Vector3, ['set', 'copy', 'add', 'sub']);
+addOnChange(THREE.Vector3, ['set', 'copy', 'add', 'sub', 'dot', 'cross', 'negate', 'ceil', 'lerp', 'divide',
+    'clamp', 'clampLength', 'clampScalar', 'multiply', 'multiplyScalar', 'multiplyVector', 'lerpVectors', 'floor', 'min',
+    'applyAxisAngle', 'applyEuler', 'applyQuaternion', 'applyMatrix3', 'applyMatrix4', 'max', 'reflect', 'round',
+    'multiplyScalar', 'addVectors', 'subVectors', 'crossVectors', 'addScaledVector', 'divideScalar']);
 addOnChange(THREE.Euler, ['set', 'copy', 'setFromQuaternion']);
 addOnChange(THREE.Quaternion, ['set', 'copy', 'setFromEuler']);
+
+export function randomRange(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}

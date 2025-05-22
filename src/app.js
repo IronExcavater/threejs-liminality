@@ -1,12 +1,16 @@
 import * as THREE from 'three';
 import {EffectComposer, OutlinePass, RenderPass} from 'three/addons';
 import * as CANNON from 'cannon-es';
-import TestRoom from './TestRoom.js';
 import Player from './Player.js';
+import Maze from './Maze.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
 import {updateTweens} from './tween.js';
 import {updateConsole} from './console.js';
-import {preloadResources} from './resources.js';
+import Flashlight from './Flashlight.js';
+import WeepingAngel from './WeepingAngel.js';
+import {getSound, preloadResources} from './resources.js';
+import {fadeOut} from './transition.js';
+import AmbientSound from './ambientSound.js';
 import './utils.js';
 
 import '/styles/app.css';
@@ -36,6 +40,7 @@ export const renderer = new THREE.WebGLRenderer({
     antialias: true,
 });
 renderer.shadowMap.enabled = true;
+renderer.setClearColor(0x000000);
 document.body.appendChild(renderer.domElement);
 renderer.setAnimationLoop(() => update(clock.getDelta()));
 
@@ -71,19 +76,55 @@ export const debug = {
 // Level components
 export const player = new Player({
     walkSpeed: 8,
+    runSpeed: 14,
     jumpStrength: 4,
     groundFriction: 4,
     width: 0.5,
     height: 1.2,
-    footstepInterval: 5,
+    footstepInterval: 8,
     cameraBob: 0.05,
     interactionReach: 1.2,
 });
 
+scene.fog = new THREE.Fog(0x000000, 10, 50);
+
 export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
 scene.add(ambientLight);
 
-new TestRoom();
+export const maze = new Maze();
+
+let activatedPower = 0;
+
+export const escapePower = 5;
+
+export function increasePower() {
+    activatedPower++;
+    if (activatedPower === escapePower) ambientSound.playGlobalSound('alarm');
+
+    if (activatedPower > escapePower) return;
+    weepingAngels.push(new WeepingAngel({
+        position: new THREE.Vector3(0, 0.75, 10000),
+    }));
+}
+
+export function getPower() {
+    return activatedPower;
+}
+
+export function canEscape() {
+    return activatedPower >= escapePower;
+}
+
+const flashlight = new Flashlight({
+    position: new THREE.Vector3(0, 0.05, -2),
+    rotation: new THREE.Euler(),
+});
+
+const weepingAngels = [];
+fadeOut({});
+
+export const ambientSound = new AmbientSound();
+ambientSound.startLoop();
 
 function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -115,6 +156,6 @@ export function removeUpdatable(obj) {
     if (index > -1) {
         updatables.splice(index, 1);
     } else {
-        console.warn('GameObject not found in updatables:', obj);
+        //console.warn('GameObject not found in updatables:', obj);
     }
 }

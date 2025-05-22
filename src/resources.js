@@ -27,6 +27,8 @@ function loadTextureSet(name, basePath) {
 }
 
 function loadSound(name, paths) {
+    if (!Array.isArray(paths)) paths = [paths];
+
     if (!sounds[name]) sounds[name] = [];
     return Promise.all(paths.map(path => {
         return new Promise((resolve, reject) => {
@@ -57,7 +59,7 @@ function loadModel(name, path) {
 
                 models[name] = {
                     scene: model,
-                    clips: gltf.animations || [],
+                    animations: gltf.animations || [],
                 };
                 resolve(gltf);
             },
@@ -98,10 +100,10 @@ export function getSound(name) {
 }
 
 export function getModel(name) {
-    const { scene, clips } = models[name];
+    const { scene, animations } = models[name];
     return {
         scene: scene.clone(true),
-        clips: clips,
+        animations: animations,
     };
 }
 
@@ -125,6 +127,30 @@ export const preloadResources = (async () => {
             'assets/sounds/step4.wav',
         ]),
 
+        loadSound('ambient', [
+            'assets/sounds/ambient/ghost.wav',
+            'assets/sounds/ambient/growling.wav',
+            'assets/sounds/ambient/lurking.wav',
+            'assets/sounds/ambient/musicBox.wav',
+            'assets/sounds/ambient/scrape.wav',
+            'assets/sounds/ambient/scream.wav',
+            'assets/sounds/ambient/sensor.wav',
+        ]),
+
+        loadSound('alarm', 'assets/sounds/alarm.wav'),
+        loadSound('riser', 'assets/sounds/riser.wav'),
+        loadSound('weepingAngel', 'assets/sounds/weepingAngel.wav'),
+
+        loadSound('doorOpen', 'assets/sounds/doorOpen.wav'),
+        loadSound('doorKnock', 'assets/sounds/doorKnock.wav'),
+        loadSound('powerOn', 'assets/sounds/powerOn.wav'),
+        loadSound('switch', 'assets/sounds/switch.wav'),
+        loadSound('flashlightClick', 'assets/sounds/flashlightClick.wav'),
+
         loadModel('flashlight', 'assets/models/flashlight/scene.gltf'),
+        loadModel('powerSwitch', 'assets/models/power-switch/scene.gltf'),
+        loadModel('exitDoor', 'assets/models/exit-door/scene.gltf'),
+        loadModel('ceilingLight', 'assets/models/ceiling-light/scene.gltf'),
+        loadModel('weepingAngel', 'assets/models/weeping-angel/scene.gltf'),
     ]);
 });
