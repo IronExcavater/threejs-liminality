@@ -1,5 +1,8 @@
 import * as THREE from 'three';
-import {EffectComposer, OutlinePass, RenderPass} from 'three/addons';
+import {EffectComposer
+    //, OutlinePass, RenderPass
+
+} from 'three/addons';
 import * as CANNON from 'cannon-es';
 import Player from './Player.js';
 import Maze from './Maze.js';
@@ -12,6 +15,7 @@ import {getSound, preloadResources} from './resources.js';
 import {fadeOut} from './transition.js';
 import AmbientSound from './ambientSound.js';
 import './utils.js';
+import { addFilmPass, addBloomPass, addGlitchPass, addOutlinePass, addRenderPass, addRGBShift, addVignette, turnOffGlitch } from './Effects.js';
 
 import '/styles/app.css';
 
@@ -46,15 +50,24 @@ renderer.setAnimationLoop(() => update(clock.getDelta()));
 
 export const composer = new EffectComposer(renderer);
 
-const renderPass = new RenderPass(scene, camera);
-composer.addPass(renderPass);
+const renderPass = new addRenderPass(scene, camera);
+export const outlinePass = new addOutlinePass(scene, camera);
+const filmPass = new addFilmPass();
+const glitchPass = new addGlitchPass();
+const bloomPass = new addBloomPass(window);
+const rgbPass = new addRGBShift();
+rgbPass.uniforms['amount'].value = 0.001;
+const vignettePass = new addVignette();
 
-export const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight),
-    scene, camera);
-outlinePass.edgeStrength = 3;
-outlinePass.edgeThickness = 1;
-outlinePass.visibleEdgeColor.set(0xffff00);
+composer.addPass(renderPass);
+composer.addPass(glitchPass);
+turnOffGlitch(glitchPass);
+composer.addPass(filmPass);
+composer.addPass(rgbPass);
 composer.addPass(outlinePass);
+composer.addPass(bloomPass);
+composer.addPass(vignettePass);
+
 
 window.addEventListener('resize', () => windowResize());
 windowResize();

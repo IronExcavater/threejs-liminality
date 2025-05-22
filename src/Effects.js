@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-            import {EffectComposer, UnrealBloomPass, OutlinePass, RenderPass, GlitchPass, ShaderPass, FilmPass} from 'three/addons';
+            import {UnrealBloomPass, OutlinePass, RenderPass, GlitchPass, ShaderPass, FilmPass} from 'three/addons';
             import { RGBShiftShader, VignetteShader} from 'three/addons';
     
     
