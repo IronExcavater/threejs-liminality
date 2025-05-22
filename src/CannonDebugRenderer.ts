@@ -11,12 +11,15 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 // @ts-ignore
-import {ids} from './app.js';
+import {addUpdatable, ids} from './app.js';
 
 export default class CannonDebugRenderer {
     public scene: THREE.Scene
     public world: CANNON.World
+    public enabled : boolean = false;
     private _meshes: THREE.Mesh[] | THREE.Points[]
+    private _bodies: CANNON.Body[]
+    private _numOfMeshes: number = 0;
     private _material: THREE.MeshBasicMaterial
     private _particleMaterial = new THREE.PointsMaterial()
     private _sphereGeometry: THREE.SphereGeometry
@@ -37,6 +40,7 @@ export default class CannonDebugRenderer {
     this.world = world
 
     this._meshes = []
+    this._bodies = [];
 
     this._material = new THREE.MeshBasicMaterial({
         color: 0x00ff00,
@@ -54,10 +58,21 @@ export default class CannonDebugRenderer {
     this._planeGeometry = new THREE.PlaneGeometry(10, 10, 10, 10)
     this._particleGeometry = new THREE.BufferGeometry()
     this._particleGeometry.setFromPoints([new THREE.Vector3(0, 0, 0)])
+
+        addUpdatable(this);
 }
 
+    public update(delta) {
+        if (!this.enabled) return;
+        if (this._numOfMeshes != this.scene.children.length) {
+            this._numOfMeshes = this.scene.children.length;
+            this.wireframe(true);
+        }
+    }
+
 public wireframe(enabled = true) {
-    const bodies: CANNON.Body[] = this.world.bodies
+        this.enabled = enabled;
+    this._bodies = this.world.bodies
     const meshes: THREE.Mesh[] | THREE.Points[] = this._meshes
     const shapeWorldPosition: CANNON.Vec3 = this.tmpVec0
     const shapeWorldQuaternion: CANNON.Quaternion = this.tmpQuat0
@@ -75,8 +90,8 @@ public wireframe(enabled = true) {
         return;
     }
 
-    for (let i = 0; i !== bodies.length; i++) {
-        const body = bodies[i]
+    for (let i = 0; i !== this._bodies.length; i++) {
+        const body = this._bodies[i]
         if (body.id === ids.get('Player')) continue;
 
         for (let j = 0; j !== body.shapes.length; j++) {

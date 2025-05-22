@@ -1,38 +1,33 @@
 import * as THREE from 'three';
-import {EffectComposer} from 'three/addons';
-import {addOutlinePass, addRenderPass, addFilmPass, addGlitchPass, turnOffGlitch, addBloomPass, addRGBShift, addVignette} from "./Effects.js";
+import {EffectComposer, OutlinePass, RenderPass} from 'three/addons';
 import * as CANNON from 'cannon-es';
-import TestRoom from './TestRoom.js';
 import Player from './Player.js';
 import Maze from './Maze.js';
 import CannonDebugRenderer from './CannonDebugRenderer.js';
 import {updateTweens} from './tween.js';
 import {updateConsole} from './console.js';
-import {preloadResources} from './resources.js';
+import Flashlight from './Flashlight.js';
+import WeepingAngel from './WeepingAngel.js';
+import {getSound, preloadResources} from './resources.js';
+import {fadeOut} from './transition.js';
+import AmbientSound from './ambientSound.js';
 import './utils.js';
 
-
 import '/styles/app.css';
-import { bool } from 'three/tsl';
-
 
 const updatables = [];
 const clock = new THREE.Clock();
 
-
 export const ids = new Map([
     ['Player', 100],
 ]);
-
 
 export const collisionFilters = new Map([ // Must be powers of 2
     ['World', 1],
     ['Player', 2],
 ]);
 
-
 await preloadResources();
-
 
 // Core three.js components
 export const scene = new THREE.Scene();
@@ -41,47 +36,18 @@ export const camera = new THREE.PerspectiveCamera(
 export const audioListener = new THREE.AudioListener();
 camera.add(audioListener);
 
-// Shaders
 export const renderer = new THREE.WebGLRenderer({
     antialias: true,
 });
-const composer = new EffectComposer(renderer);
-const renderPass = addRenderPass(scene, camera);
-const filmPass = addFilmPass();
-const glitchPass = addGlitchPass();
-const bloomPass = addBloomPass(window);
-const rgbPass = addRGBShift();
-const vignette = addVignette();
-export const outlinePass = addOutlinePass(scene, camera);
-
-composer.addPass(renderPass);
-composer.addPass(glitchPass);
-turnOffGlitch(glitchPass);
-composer.addPass(bloomPass);
-composer.addPass(rgbPass);
-composer.addPass(vignette);
-composer.addPass(outlinePass);
-composer.addPass(filmPass);
-
-window.addEventListener('resize', () => windowResize());
-windowResize();
-
 renderer.shadowMap.enabled = true;
+renderer.setClearColor(0x000000);
 document.body.appendChild(renderer.domElement);
 renderer.setAnimationLoop(() => update(clock.getDelta()));
 
-/*
-///////////// im leaving this here for tersting purposes im currently trying to find a way to have it ina  seperate file 
 export const composer = new EffectComposer(renderer);
+
 const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
-
-const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight), .3, .5, 0.85);    
-composer.addPass(bloomPass);
-
-const glitchPass = new GlitchPass();
-composer.addPass(glitchPass);
 
 export const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight),
     scene, camera);
@@ -90,21 +56,14 @@ outlinePass.edgeThickness = 1;
 outlinePass.visibleEdgeColor.set(0xffff00);
 composer.addPass(outlinePass);
 
-const filmPass = new FilmPass(.5, .9, 512, false);
-composer.addPass(filmPass);
-
-//////////////////// */
-
-
-
-
+window.addEventListener('resize', () => windowResize());
+windowResize();
 
 // Core cannon.js components
 export const world = new CANNON.World({
     gravity: new CANNON.Vec3(0, -9.81, 0),
     frictionGravity: CANNON.Vec3.zero,
 });
-
 
 // Debuggers
 export const wireframeRenderer = new CannonDebugRenderer(scene, world);
@@ -114,30 +73,58 @@ export const debug = {
     fullbright: false,
 };
 
-
 // Level components
 export const player = new Player({
     walkSpeed: 8,
+    runSpeed: 14,
     jumpStrength: 4,
     groundFriction: 4,
     width: 0.5,
     height: 1.2,
-    footstepInterval: 5,
+    footstepInterval: 8,
     cameraBob: 0.05,
     interactionReach: 1.2,
 });
 
+scene.fog = new THREE.Fog(0x000000, 10, 50);
 
 export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
 scene.add(ambientLight);
 
+export const maze = new Maze();
 
-new TestRoom();
+let activatedPower = 0;
 
+export const escapePower = 5;
 
-const map = new Maze();
-map.printGrid();
+export function increasePower() {
+    activatedPower++;
+    if (activatedPower === escapePower) ambientSound.playGlobalSound('alarm');
 
+    if (activatedPower > escapePower) return;
+    weepingAngels.push(new WeepingAngel({
+        position: new THREE.Vector3(0, 0.75, 10000),
+    }));
+}
+
+export function getPower() {
+    return activatedPower;
+}
+
+export function canEscape() {
+    return activatedPower >= escapePower;
+}
+
+const flashlight = new Flashlight({
+    position: new THREE.Vector3(0, 0.05, -2),
+    rotation: new THREE.Euler(),
+});
+
+const weepingAngels = [];
+fadeOut({});
+
+export const ambientSound = new AmbientSound();
+ambientSound.startLoop();
 
 function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -147,17 +134,14 @@ function windowResize() {
     outlinePass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
 }
 
-
 function update(delta) {
     world.fixedStep();
     updateConsole();
     updateTweens(delta);
 
-
     for (const obj of updatables) obj.update(delta);
     composer.render();
 }
-
 
 export function addUpdatable(obj) {
     if (typeof obj?.update === 'function') {
@@ -167,12 +151,11 @@ export function addUpdatable(obj) {
     }
 }
 
-
 export function removeUpdatable(obj) {
     const index = updatables.indexOf(obj);
     if (index > -1) {
         updatables.splice(index, 1);
     } else {
-        console.warn('GameObject not found in updatables:', obj);
+        //console.warn('GameObject not found in updatables:', obj);
     }
 }
