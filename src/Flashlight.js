@@ -26,7 +26,7 @@ class Flashlight extends ModelObject {
         this.add(this.glowLight);
         this.glowLight.position.set(0, 100, 0);
 
-        this._spot = new THREE.SpotLight(0xffffff, 3, 20, Math.PI / 3, 1, 1);
+        this._spot = new THREE.SpotLight(0xffffff, 5, 20, Math.PI / 3, 1, 1);
         this._spot.target.position.set(0, 0, 2);
         this._spot.visible = false;
         this.add(this._spot);
@@ -66,7 +66,8 @@ class Flashlight extends ModelObject {
             endValue: () => this.flashlightPosition,
             duration: 1,
             onComplete: () => {
-                this.equipped = true
+                this.equipped = true;
+                this.enabled = true;
                 this.sound.setBuffer(getSound('flashlightClick'));
                 this.sound.play();
             },
@@ -105,20 +106,18 @@ class Flashlight extends ModelObject {
         this.position.copy(this.flashlightPosition);
         this.quaternion.slerp(this.targetRotation, 0.1);
 
-        this._spot.visible = !this.enabled;
+        this._spot.visible = this.enabled;
         if (!this.enabled) return;
 
-        if (this.enabled) {
-            if (this.flickerCooldown <= 0 && Math.random() < 0.2) {
-                this.flickerDuration = Math.random() * 0.2 + 0.05;
-                this.flickerCooldown = this.flickerDuration + 0.1 + Math.random() * 0.2;
-            }
-
-            this.flickerDuration -= delta;
-            this.flickerCooldown -= delta;
-
-            this._spot.intensity = this.flickerDuration > 0 ? 1 : 3;
+        if (this.flickerCooldown <= 0 && Math.random() < 0.2) {
+            this.flickerDuration = Math.random() * 0.2 + 0.05;
+            this.flickerCooldown = this.flickerDuration + 2 + Math.random() * 5;
         }
+
+        this.flickerDuration -= delta;
+        this.flickerCooldown -= delta;
+
+        this._spot.intensity = this.flickerDuration > 0 ? 1 : 5;
     }
 }
 

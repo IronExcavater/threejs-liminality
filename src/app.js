@@ -11,11 +11,12 @@ import {updateTweens} from './tween.js';
 import {updateConsole} from './console.js';
 import Flashlight from './Flashlight.js';
 import WeepingAngel from './WeepingAngel.js';
-import {getSound, preloadResources} from './resources.js';
+import {preloadResources} from './resources.js';
 import {fadeOut} from './transition.js';
 import AmbientSound from './ambientSound.js';
 import './utils.js';
-import { addFilmPass, addBloomPass, addGlitchPass, addOutlinePass, addRenderPass, addRGBShift, addVignette, turnOffGlitch } from './Effects.js';
+import { addFilmPass, addBloomPass, addGlitchPass, addOutlinePass, addRenderPass, addRGBShift, addVignette,
+    turnOffGlitch } from './Effects.js';
 
 import '/styles/app.css';
 
@@ -59,6 +60,8 @@ const rgbPass = new addRGBShift();
 rgbPass.uniforms['amount'].value = 0.001;
 const vignettePass = new addVignette();
 
+export const passOrder = [bloomPass, filmPass, rgbPass, outlinePass, glitchPass, vignettePass];
+
 composer.addPass(renderPass);
 composer.addPass(bloomPass);
 composer.addPass(filmPass);
@@ -66,7 +69,6 @@ composer.addPass(rgbPass);
 composer.addPass(outlinePass);
 composer.addPass(glitchPass);
 turnOffGlitch(glitchPass);
-composer.addPass(vignettePass);
 
 
 window.addEventListener('resize', () => windowResize());
@@ -84,6 +86,8 @@ export const debug = {
     noclip: false,
     wireframe: false,
     fullbright: false,
+    postprocessing: true,
+    fog: true,
 };
 
 // Level components
@@ -99,7 +103,8 @@ export const player = new Player({
     interactionReach: 1.2,
 });
 
-scene.fog = new THREE.Fog(0x000000, 10, 50);
+export const fog = new THREE.Fog(0x000000, 10, 20);
+scene.fog = fog;
 
 export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
 scene.add(ambientLight);

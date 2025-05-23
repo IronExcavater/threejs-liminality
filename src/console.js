@@ -1,5 +1,6 @@
 import {getKey, setInputLayer} from './input.js';
-import {ambientLight, player, debug, world, collisionFilters, wireframeRenderer, scene} from './app.js';
+import {ambientLight, player, debug, world, collisionFilters, wireframeRenderer, scene, composer, fog,
+    passOrder} from './app.js';
 
 import '/styles/console.css';
 
@@ -60,13 +61,31 @@ export function executeCommand(command) {
             break;
         case 'fullbright':
             debug.fullbright = arg !== null ? arg : !debug.fullbright;
-            ambientLight.intensity = debug.fullbright ? 5 : 0.001;
+            ambientLight.intensity = debug.fullbright ? 1 : 0.001;
+            break;
+        case 'postprocessing':
+            debug.postprocessing = arg !== null ? arg : !debug.postprocessing;
+            if (debug.postprocessing) {
+                for (let i = 0; i < passOrder.length; i++) {
+                    composer.addPass(passOrder[i]);
+                }
+            } else {
+                for (let i = passOrder.length - 1; i >= 0; i--) {
+                    composer.removePass(passOrder[i]);
+                }
+            }
+            break;
+        case 'fog':
+            debug.fog = arg !== null ? arg : !debug.fog;
+            scene.fog = debug.fog ? fog : null;
             break;
         case 'help':
             log.innerHTML +=
             `   &emsp;noclip [true/false]<br>
                 &emsp;wireframe [true/false]<br>
                 &emsp;fullbright [true/false]<br>
+                &emsp;postprocessing [true/false]<br>
+                &emsp;fog [true/false]<br>
             `;
             break;
         default:
