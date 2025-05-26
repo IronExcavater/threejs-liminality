@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import {ModelObject} from './GameObject.js';
 import {getModel, getSound} from './resources.js';
-import {addUpdatable, audioListener, canEscape, ids} from './app.js';
+import {addUpdatable, audioListener, canEscape, ids, reload} from './app.js';
 import {fadeIn} from "./transition.js";
 
 class ExitDoor extends ModelObject {
     constructor({
+        cell,
         scale = new THREE.Vector3(1.5, 1.5, 1.5),
         position = new THREE.Vector3.zero,
         rotation = new THREE.Euler.identity,
@@ -17,6 +18,8 @@ class ExitDoor extends ModelObject {
             rotation: rotation,
             interactRadius: 0.4,
         });
+
+        this.cell = cell;
 
         const target = this.mesh.getObjectByName('Door');
         this.mixer = new THREE.AnimationMixer(target);
@@ -72,7 +75,7 @@ class ExitDoor extends ModelObject {
         fadeIn({
             text: 'You\'ve Escaped',
             onComplete: () => {
-                location.reload();
+                reload();
             }
         });
     }

@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import {ModelObject} from './GameObject.js';
 import {getModel, getSound} from './resources.js';
 import {addUpdatable, ambientSound, audioListener, ids, player, scene} from './app.js';
-import {randomRange} from "./utils.js";
+import {randomRange} from './utils.js';
 import {fadeIn, fadeOut} from './transition.js';
 
-class WeepingAngel extends ModelObject {
+export default class WeepingAngel extends ModelObject {
     constructor({
         scale = new THREE.Vector3(1.5, 1.5, 1.5),
         position = new THREE.Vector3(),
@@ -180,5 +180,3 @@ class WeepingAngel extends ModelObject {
         }
     }
 }
-
-export default WeepingAngel;

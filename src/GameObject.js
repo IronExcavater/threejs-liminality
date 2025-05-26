@@ -45,6 +45,8 @@ export class GameObject extends THREE.Object3D {
             this.body.quaternion.copy(this.quaternion);
         });
 
+        this.culled = false;
+
         this.position.copy(position);
         this.rotation.copy(rotation);
         this.setUVRepeat();
@@ -116,6 +118,14 @@ export class GameObject extends THREE.Object3D {
             if (this.mesh.material.map) this.mesh.material.map.dispose();
             this.mesh.material.dispose();
         }
+    }
+
+    hide(hide) {
+        this.culled = hide;
+
+        this.mesh.traverse(child => {
+            if (child.isMesh) child.visible = !hide;
+        });
     }
 }
 
@@ -352,7 +362,7 @@ export class SphereObject extends GameObject {
     setScale(vector3) {
         this.scale.copy(vector3);
         this.body.removeShape(this.shape);
-        const radius = (vector3.x + vector3.y + vector3.z) / 3;
+        const radius = (vector3.x + vector3.y + vector3.z) / 6;
         this.shape = new CANNON.Sphere(radius);
         this.body.addShape(this.shape);
         this.setUVRepeat();

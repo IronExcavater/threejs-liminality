@@ -79,9 +79,6 @@ class Player {
             this.lookControls.lock();
         });
 
-
-        this.hasFlashlight = false;
-
         this.glowlight = new THREE.PointLight(0xffffff, 1, 20, 0.8);
         this.glowlight.position.sub(new THREE.Vector3(0, height * 0.7, 0));
         this.object.add(this.glowlight);
@@ -98,8 +95,6 @@ class Player {
         this.handleMovement(velocity, delta);
 
         this.handleInteraction();
-
-        this.handleFlashlight(delta);
     }
 
     getVelocity() {
@@ -188,41 +183,6 @@ class Player {
                 outlinePass.selectedObjects.push(object);
                 break;
             }
-        }
-    }
-
-    handleFlashlight(delta) {
-        if (!this.hasFlashlight) return;
-        return;
-
-        if (getKey('KeyF', true)) {
-            this.flashlight.visible = !this.flashlight.visible;
-        }
-
-        this.flashlight.position.copy(this.object.localToWorld(new THREE.Vector3(0.3, -0.3, -0.2)));
-        this.flashlight.rotation.copy(this.object.rotation);
-
-        const targetOffset = this.object.getWorldDirection(THREE.Vector3.zero).negate().multiplyScalar(2);
-        this.flashlight.target.position.lerp(this.object.position.clone().add(targetOffset), 0.1);
-
-        if (!this.flashlight.visible) return;
-
-        this.flashlightParams.power = Math.max(this.flashlightParams.power - delta * this.flashlightParams.powerUsage, 0);
-
-        if (this.flashlightParams.power < 15) {
-            const intensity = THREE.MathUtils.lerp(this.flashlightParams.minIntensity, this.flashlightParams.maxIntensity, this.flashlightParams.power / 15);
-
-            const flickerChance = 0.2 + 0.8 * intensity;
-            if (this.flickerCooldown <= 0 && Math.random() < flickerChance) {
-                const random = (1 + Math.random()) * 0.5;
-                this.flickerDuration = THREE.MathUtils.lerp(this.flashlightParams.minFlicker, this.flashlightParams.maxFlicker, intensity) + random;
-                this.flickerCooldown = this.flickerDuration + this.flashlightParams.minCooldown + intensity * random;
-            }
-            this.flickerDuration -= delta;
-            this.flickerCooldown -= delta;
-            this.flashlight.intensity = this.flickerDuration > 0 ? 0.01 : intensity;
-        } else {
-            this.flashlight.intensity = this.flashlightParams.maxIntensity;
         }
     }
 

@@ -1,8 +1,6 @@
 import * as THREE from 'three';
-import {EffectComposer
-    //, OutlinePass, RenderPass
-
-} from 'three/addons';
+import {EffectComposer, FilmPass, GlitchPass, OutlinePass, RenderPass, RGBShiftShader, ShaderPass, UnrealBloomPass,
+    VignetteShader} from 'three/addons';
 import * as CANNON from 'cannon-es';
 import Player from './Player.js';
 import Maze from './Maze.js';
@@ -14,9 +12,8 @@ import WeepingAngel from './WeepingAngel.js';
 import {preloadResources} from './resources.js';
 import {fadeOut} from './transition.js';
 import AmbientSound from './ambientSound.js';
+import AmbientLighting from './ambientLighting.js';
 import './utils.js';
-import { addFilmPass, addBloomPass, addGlitchPass, addOutlinePass, addRenderPass, addRGBShift, addVignette,
-    turnOffGlitch } from './Effects.js';
 
 import '/styles/app.css';
 
@@ -51,14 +48,24 @@ renderer.setAnimationLoop(() => update(clock.getDelta()));
 
 export const composer = new EffectComposer(renderer);
 
-const renderPass = new addRenderPass(scene, camera);
-export const outlinePass = new addOutlinePass(scene, camera);
-const filmPass = new addFilmPass();
-const glitchPass = new addGlitchPass();
-const bloomPass = new addBloomPass(window);
-const rgbPass = new addRGBShift();
+const renderPass = new RenderPass(scene, camera);
+
+export const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight),scene, camera);
+outlinePass.edgeStrength = 3;
+outlinePass.edgeThickness = 1;
+outlinePass.visibleEdgeColor.set(0xffff00);
+
+const filmPass = new FilmPass(1, false);
+
+export const glitchPass = new GlitchPass();
+
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight),
+    0.3, 0.5, 0.85);
+
+const rgbPass = new ShaderPass(RGBShiftShader);
 rgbPass.uniforms['amount'].value = 0.001;
-const vignettePass = new addVignette();
+
+const vignettePass = new ShaderPass(VignetteShader);
 
 export const passOrder = [bloomPass, filmPass, rgbPass, outlinePass, glitchPass, vignettePass];
 
@@ -68,7 +75,6 @@ composer.addPass(filmPass);
 composer.addPass(rgbPass);
 composer.addPass(outlinePass);
 composer.addPass(glitchPass);
-turnOffGlitch(glitchPass);
 
 
 window.addEventListener('resize', () => windowResize());
@@ -103,7 +109,12 @@ export const player = new Player({
     interactionReach: 1.2,
 });
 
-export const fog = new THREE.Fog(0x000000, 10, 20);
+export const settings = {
+    renderDistance: 6,
+    maxNumLights: 10,
+};
+
+export const fog = new THREE.Fog(0x000000);
 scene.fog = fog;
 
 export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
@@ -138,11 +149,14 @@ const flashlight = new Flashlight({
     rotation: new THREE.Euler(),
 });
 
-const weepingAngels = [];
+let weepingAngels = [];
 fadeOut({});
 
 export const ambientSound = new AmbientSound();
 ambientSound.startLoop();
+
+export const ambientLighting = new AmbientLighting();
+ambientLighting.startLoop();
 
 function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -150,12 +164,14 @@ function windowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight);
     outlinePass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+    bloomPass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
 }
 
 function update(delta) {
     world.fixedStep();
     updateConsole();
     updateTweens(delta);
+    updateSettings();
 
     for (const obj of updatables) obj.update(delta);
     composer.render();
@@ -176,4 +192,19 @@ export function removeUpdatable(obj) {
     } else {
         //console.warn('GameObject not found in updatables:', obj);
     }
+}
+
+function updateSettings() {
+    fog.far = settings.renderDistance * 2;
+}
+
+export function reload() {
+    weepingAngels.forEach(weepingAngel => {
+        scene.remove(weepingAngel);
+        weepingAngel.dispose();
+    });
+    weepingAngels = [];
+    player.setPosition(new THREE.Vector3(0, 0, 0));
+    player.setRotation(new THREE.Vector3());
+    fadeOut({});
 }

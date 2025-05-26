@@ -1,6 +1,7 @@
 import { Tween } from './tween.js';
 
 import '/styles/transition.css';
+import {glitchPass} from "./app.js";
 
 const transition = document.createElement('div');
 transition.id = 'transition';
@@ -14,7 +15,7 @@ function setAlpha(alpha) {
 }
 
 export function fadeIn({
-    duration = 1,
+    duration = 2,
     text = '',
     onComplete = () => {}
 }) {
@@ -26,10 +27,11 @@ export function fadeIn({
         duration,
         onComplete
     });
+    setTimeout(() => glitchPass.enabled = true, 2000);
 }
 
 export function fadeOut({
-    duration = 1,
+    duration = 2,
     onComplete = () => {}
 }) {
     new Tween({
@@ -41,5 +43,6 @@ export function fadeOut({
             transition.innerText = '';
             onComplete();
         }
-    })
+    });
+    setTimeout(() => glitchPass.enabled = false, 2000);
 }

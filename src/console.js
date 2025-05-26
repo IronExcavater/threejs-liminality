@@ -88,6 +88,28 @@ export function executeCommand(command) {
                 &emsp;fog [true/false]<br>
             `;
             break;
+        case 'all':
+            debug.fog = arg !== null ? arg : !debug.fog;
+            scene.fog = debug.fog ? fog : null;
+
+            debug.postprocessing = arg !== null ? arg : !debug.postprocessing;
+            if (debug.postprocessing) {
+                for (let i = 0; i < passOrder.length; i++) {
+                    composer.addPass(passOrder[i]);
+                }
+            } else {
+                for (let i = passOrder.length - 1; i >= 0; i--) {
+                    composer.removePass(passOrder[i]);
+                }
+            }
+
+            debug.noclip = arg !== null ? arg : !debug.noclip;
+            world.gravity.y = debug.noclip ? 0 : -9.81;
+            player.body.collisionFilterMask = debug.noclip ? 0 : collisionFilters.get('World');
+
+            debug.fullbright = arg !== null ? arg : !debug.fullbright;
+            ambientLight.intensity = debug.fullbright ? 1 : 0.001;
+            break;
         default:
             log.innerHTML += `Unknown command: ${cmd}<br>`;
             break;

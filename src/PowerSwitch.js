@@ -2,9 +2,11 @@ import * as THREE from 'three';
 import {ModelObject} from './GameObject.js';
 import {getModel, getSound} from './resources.js';
 import {addUpdatable, audioListener, canEscape, getPower, increasePower, maze} from './app.js';
+import CeilingLight from './CeilingLight.js';
 
-class PowerSwitch extends ModelObject {
+export default class PowerSwitch extends ModelObject {
     constructor({
+        cell,
         scale = new THREE.Vector3(0.5, 0.5, 0.5),
         position = new THREE.Vector3.zero,
         rotation = new THREE.Euler.identity,
@@ -17,6 +19,8 @@ class PowerSwitch extends ModelObject {
             rotation: rotation,
             interactRadius: 0.4,
         });
+
+        this.cell = cell;
 
         const target = this.mesh.getObjectByName('Object_10');
         this.mixer = new THREE.AnimationMixer(target); // Slightly dodgy as the animation should be on root
@@ -44,21 +48,41 @@ class PowerSwitch extends ModelObject {
         this.sound.setBuffer(getSound(canEscape() ? 'powerOn' : 'switch'));
         this.sound.play();
 
-        const chunk = maze.worldToChunk(this.position.x, this.position.z);
-        const chunkData = maze.getChunk(chunk.x, chunk.y);
-
-        for (const item of chunkData) {
-            if (item.entityType === 'powerSwitch') {
-                const dx = Math.abs(item.x - this.position.x);
-                const dz = Math.abs(item.y - this.position.y);
-                if (dx < 0.01 && dz < 0.01) {
-                    item.state = true;
-                    break;
-                }
-            }
+        const powerSwitch = maze.findEntityFromWorld('powerSwitch', this.position.x, this.position.z);
+        console.log(powerSwitch);
+        if (powerSwitch != null) {
+            powerSwitch.state = true;
+            console.log("running data changes")
+            this.activateNearbyLights(powerSwitch);
         }
 
         this.activateAnimation();
+    }
+
+    activateNearbyLights(powerSwitch) {
+        for (const [key, value] of maze.ceilingLights) {
+            if (powerSwitch.cell.key() === key) {
+                console.log('power switch location in ceiling lights map found');
+                console.log(value);
+                for (const cell of value) {
+                    const ceilingLight = maze.findEntityFromGrid('ceilingLight', cell.x, cell.y);
+                    if (ceilingLight != null) {
+                        console.log('ceiling light entity in ceiling lights map found', cell);
+                        ceilingLight.state = true;
+                        const chunk = maze.gridToChunk(cell.x, cell.y);
+                        const chunkData = maze.instantiated.get(chunk.key());
+                        if (chunkData === undefined) continue;
+                        console.log(chunkData);
+                        for (const obj of chunkData) {
+                            if (obj instanceof CeilingLight && obj.cell.key() === cell.key()) {
+                                obj.state = true;
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+        }
     }
 
     activateAnimation() {
@@ -77,5 +101,3 @@ class PowerSwitch extends ModelObject {
         this.mixer.update(delta);
     }
 }
-
-export default PowerSwitch;

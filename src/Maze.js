@@ -2,11 +2,11 @@ import * as THREE from 'three';
 import {randomRange} from './utils.js';
 import {getMaterial} from './resources.js';
 import {BoxObject, PlaneObject} from './GameObject.js';
-import {addUpdatable, player} from './app.js';
+import {addUpdatable, player, settings} from './app.js';
 import { Heap } from 'heap-js'
-import PowerSwitch from "./PowerSwitch.js";
-import ExitDoor from "./ExitDoor.js";
-import {xor} from "three/tsl";
+import PowerSwitch from './PowerSwitch.js';
+import ExitDoor from './ExitDoor.js';
+import CeilingLight from './CeilingLight.js';
 
 class Cell {
     constructor(x, y) {
@@ -64,6 +64,14 @@ class Maze {
 
         this.grid = new Map(); // key: Cell.key() => string, value: true/false (true=wall)
 
+        this.ceilingLights = new Map(); // key: closest power switch entity => Cell.key(), value: CeilingLight cell => Cell
+
+        this.entityTypes = new Map([
+            ['ceilingLight', 1],
+            ['exitDoor', 2],
+            ['powerSwitch', 3]
+        ]);
+
         for (let y = 0; y < this.config.mapSize; y++) {
             for (let x = 0; x < this.config.mapSize; x++) {
                 this.setCell(x, y, true);
@@ -71,24 +79,27 @@ class Maze {
         }
 
         this.chunks = new Map(); // key: Cell.key() => string, value: array of data (x, y, w, h, type) with type = box, model, etc. and model type also with data to the model name.
-        this._instantiated = new Map(); // key: Cell.key() => string, value: array of gameObjects
+        this.instantiated = new Map(); // key: Cell.key() => string, value: array of gameObjects
 
         this.generateWalls();
         this.generateRooms();
         this.clearStartingArea();
         this.generateBorderWalls();
 
-        this.generateEntities(2, 30, 50); // exits
-        this.generateEntities(3, 100, 20); // power breakers
+        this.generateEntities(this.entityTypes.get('exitDoor'), 30, 50);
+        this.generateEntities(this.entityTypes.get('powerSwitch'), 100, 20);
 
         this.entities.forEach(arr => arr.forEach(({x, y}) => this.createPath(this.origin(), new Cell(x, y))));
+
+        this.generateCeilingLights(this.entityTypes.get('ceilingLight'), this.entityTypes.get('powerSwitch'), 5);
 
         this.printGrid();
 
         this.buildFloorCeiling();
         this.buildWalls();
-        this.buildEntities(2, 0.03, -0.25);
-        this.buildEntities(3, 0.05, 0);
+        this.buildEntities(this.entityTypes.get('ceilingLight'), 0, 0.98);
+        this.buildEntities(this.entityTypes.get('exitDoor'), 0.04, -0.25);
+        this.buildEntities(this.entityTypes.get('powerSwitch'), 0.05, 0);
 
         addUpdatable(this);
     }
@@ -116,12 +127,18 @@ class Maze {
         return null;
     }
 
-    worldToChunk(x, y) {
+    worldToChunk(x, z) {
         let cx = Math.floor((x + this.worldOrigin().x) / (this.config.chunkSize * this.config.cellSize));
         if (isNaN(cx)) cx = 0;
-        let cy = Math.floor((y + this.worldOrigin().y) / (this.config.chunkSize * this.config.cellSize));
+        let cy = Math.floor((z + this.worldOrigin().y) / (this.config.chunkSize * this.config.cellSize));
         if (isNaN(cy)) cy = 0;
         return new Cell(cx, cy);
+    }
+
+    gridToChunk(x, y) {
+        const chunkX = Math.floor(x / this.config.chunkSize);
+        const chunkY = Math.floor(y / this.config.chunkSize);
+        return new Cell(chunkX, chunkY);
     }
 
     getChunk(x, y) {
@@ -223,6 +240,56 @@ class Maze {
         return {x, y};
     }
 
+    generateCeilingLights(type, powerSwitchType, spacing) {
+        const origin = this.origin();
+        const heap = new Heap((a, b) => Cell.manhattan(a, origin) - Cell.manhattan(b, origin));
+        heap.push(origin);
+        const visited = new Set([origin.key()]);
+
+        this.entities.set(type, []);
+        const ceilingLights = this.entities.get(type);
+
+        const powerSwitches = this.entities.get(powerSwitchType);
+        this.ceilingLights.clear();
+
+        while (!heap.isEmpty()) {
+            const cell = heap.pop();
+
+            if (!this.hasCell(cell.x, cell.y)) continue;
+            if (this.getCell(cell.x, cell.y)) continue;
+
+            let closestPowerSwitch = new Cell(0, 0);
+            let closestDistance = Number.MAX_VALUE;
+            for (const powerSwitch of powerSwitches) {
+                const powerSwitchCell = new Cell(powerSwitch.x, powerSwitch.y);
+                const distance = Cell.manhattan(cell, powerSwitchCell);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestPowerSwitch = powerSwitchCell;
+                }
+            }
+
+            let list = this.ceilingLights.has(closestPowerSwitch.key())
+                ? this.ceilingLights.get(closestPowerSwitch.key())
+                : this.ceilingLights.set(closestPowerSwitch.key(), []).get(closestPowerSwitch.key());
+
+
+            ceilingLights.push({ x: cell.x, y: cell.y, dir: [0, 0]});
+
+            list.push(cell);
+
+            for (const [dx, dy] of this.directions()) {
+                const neighbor = new Cell(cell.x + dx * spacing, cell.y + dy * spacing);
+
+                if (this.hasCell(neighbor.x, neighbor.y) && !visited.has(neighbor.key())) {
+                    visited.add(neighbor.key());
+                    heap.push(neighbor);
+                }
+            }
+        }
+        console.log('placed ceiling lights: ', ceilingLights);
+    }
+
     generateEntities(type, count, spacing) {
         const origin = this.origin();
         const heap = new Heap((a, b) => Cell.manhattan(a, origin) - Cell.manhattan(b, origin));
@@ -269,7 +336,7 @@ class Maze {
                     !this.getCell(neighbor.x, neighbor.y) &&
                     !this.getEntity(neighbor.x, neighbor.y))
                 {
-                    return { x: neighbor.x, y: neighbor.y, dir: [-dx, -dy]};
+                    return { cell: new Cell(x, y), x: neighbor.x, y: neighbor.y, dir: [-dx, -dy]};
                 }
             }
         }
@@ -378,7 +445,7 @@ class Maze {
 
     loadChunksAround(playerX, playerY) {
         const chunkOrigin = this.worldToChunk(playerX, playerY);
-        const radius = this.config.chunkRadius;
+        const radius = settings.renderDistance / this.config.cellSize;
 
         const activeChunks = new Set();
 
@@ -387,12 +454,12 @@ class Maze {
                 const chunk = new Cell(chunkOrigin.x + dx, chunkOrigin.y + dy);
                 activeChunks.add(chunk.key());
 
-                if (this._instantiated.has(chunk.key())) {
-                    for (const obj of this._instantiated.get(chunk.key())) {
-                        if (obj.mesh) obj.mesh.visible = true;
+                if (this.instantiated.has(chunk.key())) {
+                    for (const obj of this.instantiated.get(chunk.key())) {
+                        obj.hide(false);
                     }
                 } else {
-                    this._instantiated.set(chunk.key(), []);
+                    this.instantiated.set(chunk.key(), []);
                     const chunkData = this.getChunk(chunk.x, chunk.y);
 
                     for (const item of chunkData) {
@@ -409,25 +476,44 @@ class Maze {
                             const pos = new THREE.Vector3(item.x, item.y, item.z);
                             const rot = new THREE.Euler(0, item.rot, 0);
 
-                            if (item.entityType === 'exitDoor') {
+                            if (this.entityTypes.get('exitDoor') === item.entityType) {
                                 obj = new ExitDoor({
-                                    position: pos, rotation: rot
+                                    cell: item.cell, position: pos, rotation: rot
                                 });
-                            } else if (item.entityType === 'powerSwitch') {
+
+                            } else if (this.entityTypes.get('powerSwitch') === item.entityType) {
                                 obj = new PowerSwitch({
-                                    position: pos, rotation: rot, state: item.state
+                                    cell: item.cell, position: pos, rotation: rot, state: item.state
+                                });
+
+                            } else if (this.entityTypes.get('ceilingLight') === item.entityType) {
+
+                                let state = item.state;
+                                if (!item.state) {
+                                    for (const [key, value] of this.ceilingLights.entries()) {
+                                        for (const powerSwitch of this.entities.get(this.entityTypes.get('powerSwitch'))) {
+                                            if (powerSwitch.cell.key() === key) {
+                                                for (const cell of value) {
+                                                    if (cell.x === item.x && cell.y === item.y) state = true;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                obj = new CeilingLight({
+                                    cell: item.cell, position: pos, rotation: rot, state: item.state
                                 });
                             }
                         }
 
-                        if (obj) this._instantiated.get(chunk.key()).push(obj);
+                        if (obj) this.instantiated.get(chunk.key()).push(obj);
                     }
                 }
             }
         }
 
         // Hide all non-active chunks within cullRadius otherwise destroy
-        for (const [key, objs] of this._instantiated.entries()) {
+        for (const [key, objs] of this.instantiated.entries()) {
             const chunk = Cell.fromKey(key);
             const dx = chunk.x - chunkOrigin.x;
             const dy = chunk.y - chunkOrigin.y;
@@ -438,11 +524,11 @@ class Maze {
                 for (const obj of objs) {
                     obj?.dispose();
                 }
-                this._instantiated.delete(key);
+                this.instantiated.delete(key);
             } else if (!activeChunks.has(key)) {
                 // Still within cull radius, just hide
                 for (const obj of objs) {
-                    if (obj.mesh) obj.mesh.visible = false;
+                    obj.hide(true);
                 }
             }
         }
@@ -481,10 +567,9 @@ class Maze {
 
                 if (!hasOpenNeighbour) continue;
 
-                const chunkX = Math.floor(x / this.config.chunkSize);
-                const chunkY = Math.floor(y / this.config.chunkSize);
+                const chunk = this.gridToChunk(x, y);
 
-                this.getChunk(chunkX, chunkY).push({
+                this.getChunk(chunk.x, chunk.y).push({
                     type: 'box',
                     x: x * this.config.cellSize - this.worldOrigin().x,
                     y: this.config.wallHeight / 2,
@@ -501,13 +586,7 @@ class Maze {
     buildEntities(type, directionOffset = 0, yPositionOffset = 0) {
 
         for (const { x, y, dir } of this.entities.get(type)) {
-            const chunkX = Math.floor(x / this.config.chunkSize);
-            const chunkY = Math.floor(y / this.config.chunkSize);
-
-            const entityType =
-                type === 2 ? 'exitDoor' :
-                type === 3 ? 'powerSwitch' :
-                null;
+            const chunk = this.gridToChunk(x, y);
 
             const baseX = x * this.config.cellSize - this.worldOrigin().x;
             const baseZ = y * this.config.cellSize - this.worldOrigin().y;
@@ -515,16 +594,60 @@ class Maze {
             const dx = dir[0] * (this.config.cellSize / 2 - directionOffset);
             const dz = dir[1] * (this.config.cellSize / 2 - directionOffset);
 
-            this.getChunk(chunkX, chunkY).push({
+            const extraConfig = {};
+
+            if (type === this.entityTypes.get('ceilingLight')) {
+                outer: for (const [key, value] of this.ceilingLights.entries()) {
+                    for (const cell of value) {
+                        if (cell.key() === Cell.toKey(x, y)) {
+                            extraConfig.closestPowerSwitch = key;
+                            break outer;
+                        }
+                    }
+                }
+            }
+
+            this.getChunk(chunk.x, chunk.y).push({
                 type: 'entity',
-                entityType: entityType,
+                entityType: type,
                 state: false,
+                cell: new Cell(x, y),
                 x: baseX + dx,
                 y: this.config.wallHeight / 2 + yPositionOffset,
                 z: baseZ + dz,
                 rot: Math.atan2(dir[0], dir[1]),
+                ...extraConfig
             });
         }
+    }
+
+    findEntityFromWorld(type, x, z) {
+        const chunk = this.worldToChunk(x, z);
+        const chunkData = this.getChunk(chunk.x, chunk.y);
+        console.log(type, x, z);
+        console.log(chunkData);
+        for (const item of chunkData) {
+            if (item.entityType === this.entityTypes.get(type)) {
+                const dx = Math.abs(item.x - x);
+                const dz = Math.abs(item.z - z);
+                if (dx < 0.01 && dz < 0.01) return item;
+            }
+        }
+        return null;
+    }
+
+    findEntityFromGrid(type, x, y) {
+        const chunk = this.gridToChunk(x, y);
+        const chunkData = this.getChunk(chunk.x, chunk.y);
+
+        for (const item of chunkData) {
+            if (item.entityType === this.entityTypes.get(type)) {
+                const dx = Math.abs(item.cell.x - x);
+                const dz = Math.abs(item.cell.y - y);
+                if (dx < 0.01 && dz < 0.01) return item;
+            }
+        }
+        return null;
     }
 
     printGrid() {

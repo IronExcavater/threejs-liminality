@@ -7,7 +7,7 @@ import {Tween} from "./tween.js";
 class AmbientSound {
     constructor(
         distanceRange = [30, 60],
-        volumeRange = [0.3, 1],
+        volumeRange = [0.8, 1.2],
         delayRange = [10000, 20000]
     ) {
         this.object = new THREE.Object3D();
