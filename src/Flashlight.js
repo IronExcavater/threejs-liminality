@@ -117,7 +117,7 @@ class Flashlight extends ModelObject {
         this.flickerDuration -= delta;
         this.flickerCooldown -= delta;
 
-        this._spot.intensity = this.flickerDuration > 0 ? THREE.MathUtils.lerp(0.2, 5, Math.random()) : 0;
+        this._spot.intensity = this.flickerDuration > 0 ? 1 : 5;
     }
 }
 

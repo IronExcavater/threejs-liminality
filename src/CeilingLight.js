@@ -47,7 +47,7 @@ export default class CeilingLight extends ModelObject {
 
     removeLight() {
         if (this.light) {
-            hideCeilingLight(this.light);
+            ambientLighting.hideCeilingLight(this.light);
             this.light = null;
         }
     }

@@ -35,7 +35,7 @@ export default class DynamicPointLight extends THREE.PointLight {
         this.flickerDuration -= delta;
         this.flickerCooldown -= delta;
 
-        this.intensity = this.flickerDuration > 0 ? THREE.MathUtils.lerp(0.2, 5, Math.random()) : 0;
+        this.intensity = this.flickerDuration > 0 ? 1 : 5;
 
     }
 
@@ -48,17 +48,17 @@ export default class DynamicPointLight extends THREE.PointLight {
                 new Tween({
                     setter: color => this.color = color,
                     startValue: this.color,
-                    endValue: 0xff0000,
+                    endValue: new THREE.Color(0xff0000),
                     duration: 1,
-                    easing: Easing.EaseInCubic(),
+                    easing: t => Easing.EaseInCubic(t),
                     onComplete: () => {
                         setTimeout(() => {
                             new Tween({
                                 setter: color => this.color = color,
                                 startValue: this.color,
-                                endValue: 0xffffff,
+                                endValue: new THREE.Color(0xffffff),
                                 duration: 2,
-                                easing: Easing.EaseOutCubic(),
+                                easing: t => Easing.EaseOutCubic(t),
                             });
                         }, eventDuration - 3);
                     }

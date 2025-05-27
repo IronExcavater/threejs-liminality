@@ -66,6 +66,7 @@ export class Tween {
 function lerp(a, b, t) {
     if (a instanceof THREE.Vector3) return a.clone().lerp(b, t);
     if (a instanceof THREE.Quaternion) return a.clone().slerp(b, t);
+    if (a instanceof THREE.Color) return a.clone().lerp(b, t);
     if (typeof a === 'number') return a + (b - a) * t;
     throw new Error('Unsupported tween type');
 }
