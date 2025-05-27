@@ -35,7 +35,7 @@ export default class DynamicPointLight extends THREE.PointLight {
         this.flickerDuration -= delta;
         this.flickerCooldown -= delta;
 
-        this.intensity = this.flickerDuration > 0 ? THREE.MathUtils.lerp(0.2, 5, Math.random()) : 0;
+        this.intensity = this.flickerDuration > 0 ? 1 : 5;
 
     }
 

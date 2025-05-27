@@ -37,7 +37,7 @@ class ExitDoor extends ModelObject {
         this.body.addEventListener('collide', (e) => {
             const other = e.body;
 
-            if (other.id === ids.get('Player')) {
+            if (other.id === ids.get('Player') && this.state) {
                 this.nextLevel();
             }
         });
