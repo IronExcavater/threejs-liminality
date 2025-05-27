@@ -146,6 +146,7 @@ export const preloadResources = (async () => {
         loadSound('powerOn', 'assets/sounds/powerOn.wav'),
         loadSound('switch', 'assets/sounds/switch.wav'),
         loadSound('flashlightClick', 'assets/sounds/flashlightClick.wav'),
+        loadSound('lightHum', 'assets/sounds/lightHum.wav'),
 
         loadModel('flashlight', 'assets/models/flashlight/scene.gltf'),
         loadModel('powerSwitch', 'assets/models/power-switch/scene.gltf'),

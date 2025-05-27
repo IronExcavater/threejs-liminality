@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {addUpdatable, audioListener, scene} from './app.js';
 import {Easing, Tween} from './tween.js';
+import {getSound} from './resources.js';
 
 export default class DynamicSpotLight extends THREE.SpotLight {
     constructor(color = 0xffffff, intensity = 5, distance = 3, angle = Math.PI / 2, penumbra = 1, delay = 2) {
@@ -10,7 +11,10 @@ export default class DynamicSpotLight extends THREE.SpotLight {
 
         this.sound = new THREE.PositionalAudio(audioListener);
         this.sound.setRefDistance(10);
-        this.sound.setVolume(1);
+        this.sound.setVolume(0.1);
+        this.sound.setLoop(true);
+        this.sound.setBuffer(getSound('lightHum'));
+        this.sound.play();
         this.add(this.sound);
 
         this.flickerDuration = 0;
@@ -39,6 +43,9 @@ export default class DynamicSpotLight extends THREE.SpotLight {
         this.flickerCooldown -= delta;
 
         this.intensity = this.enabled ? this.flickerDuration > 0 ? 1 : 5 : 0;
+
+        if (this.sound.getLoop() && !this.enabled) this.sound.setLoopEnd(performance.now());
+        if (!this.sound.getLoop() && this.enabled) this.sound.setLoopStart(performance.now());
 
     }
 

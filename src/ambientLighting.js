@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 import {player, scene, settings} from './app.js';
 import DynamicSpotLight from './DynamicSpotLight.js';
 import {randomRange} from './utils.js';
