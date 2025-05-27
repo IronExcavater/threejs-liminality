@@ -30,11 +30,6 @@ export default class DynamicSpotLight extends THREE.SpotLight {
     raycast() {}
 
     update(delta) {
-
-        //if (this.enabled !== this.visible) this.visible = this.enabled;
-
-        //if (!this.enabled) return;
-
         if (this.flickerCooldown <= 0 && Math.random() < 0.2) {
             this.flickerDuration = Math.random() * 0.2 + 0.05;
             this.flickerCooldown = this.flickerDuration + 2 + Math.random() * 5;
