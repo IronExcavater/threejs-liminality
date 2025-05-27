@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import {addUpdatable, audioListener, scene} from './app.js';
 import {Easing, Tween} from './tween.js';
 
-export default class DynamicPointLight extends THREE.PointLight {
-    constructor(color = 0xffffff, intensity = 1, distance = 0, penumbra = 2) {
-        super(color, intensity, distance, penumbra);
+export default class DynamicSpotLight extends THREE.SpotLight {
+    constructor(color = 0xffffff, intensity = 1, distance = 3, angle = Math.PI / 2, penumbra = 1, delay = 2) {
+        super(color, intensity, distance, angle, penumbra, delay);
 
         this.enabled = false;
 
@@ -16,14 +16,22 @@ export default class DynamicPointLight extends THREE.PointLight {
         this.flickerDuration = 0;
         this.flickerCooldown = 0;
 
+        this.distanceSquared = 0;
+
         scene.add(this);
+        scene.add(this.target);
+
+        this.position.onChange(() => {
+            this.target.position.copy(this.position).add(new THREE.Vector3(0, -0.1, 0));
+        });
         addUpdatable(this);
     }
 
     raycast() {}
 
     update(delta) {
-        this.visible = this.enabled;
+
+        if (this.enabled !== this.visible) this.visible = this.enabled;
 
         if (!this.enabled) return;
 
@@ -42,6 +50,7 @@ export default class DynamicPointLight extends THREE.PointLight {
     triggerLightingEvent(eventName, eventDuration) {
         switch (eventName) {
             case 'blackout':
+                this.flickerDuration = eventDuration;
                 this.flickerCooldown = eventDuration;
                 break;
             case 'blood':
@@ -60,7 +69,7 @@ export default class DynamicPointLight extends THREE.PointLight {
                                 duration: 2,
                                 easing: t => Easing.EaseOutCubic(t),
                             });
-                        }, eventDuration - 3);
+                        }, eventDuration - 3000);
                     }
                 })
                 break;

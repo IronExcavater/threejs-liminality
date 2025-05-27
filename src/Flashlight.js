@@ -26,9 +26,8 @@ class Flashlight extends ModelObject {
         this.add(this.glowLight);
         this.glowLight.position.set(0, 100, 0);
 
-        this._spot = new THREE.SpotLight(0xffffff, 5, 20, Math.PI / 3, 1, 1);
+        this._spot = new THREE.SpotLight(0xffffff, 0, 20, Math.PI / 3, 1, 1);
         this._spot.target.position.set(0, 0, 2);
-        this._spot.visible = false;
         this.add(this._spot);
         this.add(this._spot.target);
 
@@ -106,9 +105,6 @@ class Flashlight extends ModelObject {
         this.position.copy(this.flashlightPosition);
         this.quaternion.slerp(this.targetRotation, 0.1);
 
-        this._spot.visible = this.enabled;
-        if (!this.enabled) return;
-
         if (this.flickerCooldown <= 0 && Math.random() < 0.2) {
             this.flickerDuration = Math.random() * 0.2 + 0.05;
             this.flickerCooldown = this.flickerDuration + 2 + Math.random() * 5;
@@ -117,7 +113,7 @@ class Flashlight extends ModelObject {
         this.flickerDuration -= delta;
         this.flickerCooldown -= delta;
 
-        this._spot.intensity = this.flickerDuration > 0 ? 1 : 5;
+        this._spot.intensity = this.enabled ? this.flickerDuration > 0 ? 1 : 5 : 0;
     }
 }
 
