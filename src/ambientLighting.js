@@ -1,6 +1,7 @@
-import {scene, settings} from './app.js';
-import DynamicPointLight from './DynamicPointLight.js';
-import {randomRange} from "./utils.js";
+import * as THREE from 'three';
+import {player, scene, settings} from './app.js';
+import DynamicSpotLight from './DynamicSpotLight.js';
+import {randomRange} from './utils.js';
 
 export default class AmbientLighting {
     constructor(
@@ -8,46 +9,58 @@ export default class AmbientLighting {
         delayRange = [20000, 40000],
         events = ['blackout', 'blood']
     ) {
-        this.ceilingLights = new Array(settings.maxNumLights).fill(0).map(() => {
-            const light = new DynamicPointLight(0xffffff, 0.4);
-            light.visible = false;
+
+        this.ceilingLights = [];
+        this.availableLights = new Set();
+        this.activeLights = [];
+
+        for (let i = 0; i < settings.maxNumLights; i++) {
+            const light = new DynamicSpotLight(0xffffff);
+            light.enabled = false;
             scene.add(light);
-            return light;
-        });
+            this.ceilingLights.push(light);
+            this.availableLights.add(light);
+        }
 
         this.durationRange = durationRange;
         this.delayRange = delayRange;
         this.events = events;
-        this.currentNumLights = 0;
-
         this.isLooping = false;
     }
 
-    canCreateLight() {
-        return this.currentNumLights < settings.maxNumLights;
-    }
-
     showCeilingLight(position) {
-        if (!this.canCreateLight()) return;
-        for (const ceilingLight of this.ceilingLights) {
-            if (ceilingLight.enabled === false) {
-                this.currentNumLights++;
-                ceilingLight.position.copy(position);
-                ceilingLight.enabled = true;
-                return ceilingLight;
+        let light;
+        const distanceSquared = position.distanceToSquared(player.object.position);
+
+        if (this.availableLights.size === 0) {
+            this.activeLights.sort((a, b) => a.distanceSquared - b.distanceSquared);
+            const farthest = this.activeLights[this.activeLights.length - 1];
+            if (distanceSquared < farthest.distanceSquared) {
+                light = this.activeLights.pop();
             }
+        } else {
+            light = this.availableLights.values().next().value;
+            this.availableLights.delete(light);
         }
+
+        if (light === undefined) return null;
+
+        light.position.copy(position);
+        light.enabled = true;
+
+        this.activeLights.push(light);
+        return light;
     }
 
-    hideCeilingLight(ceilingLight) {
-        ceilingLight.enabled = false;
-        this.currentNumLights--;
+    hideCeilingLight(light) {
+        this.activeLights.splice(this.activeLights.indexOf(light), 1);
+        light.enabled = false;
+        this.availableLights.add(light);
     }
 
     startLoop() {
         if (this.isLooping) return;
         this.isLooping = true;
-        const delay = randomRange(this.delayRange[0], this.delayRange[1]);
         this.queueNext();
     }
 
@@ -56,6 +69,8 @@ export default class AmbientLighting {
     }
 
     queueNext() {
+        if (!this.isLooping) return;
+
         const duration = randomRange(this.durationRange[0], this.durationRange[1]);
         const delay = randomRange(this.delayRange[0], this.delayRange[1]);
 

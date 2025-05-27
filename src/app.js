@@ -110,7 +110,7 @@ export const player = new Player({
 });
 
 export const settings = {
-    renderDistance: 6,
+    renderDistance: 4,
     maxNumLights: 10,
 };
 
@@ -119,6 +119,8 @@ scene.fog = fog;
 
 export const ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
 scene.add(ambientLight);
+
+await renderer.compileAsync(scene, camera);
 
 export const maze = new Maze();
 

@@ -19,9 +19,8 @@ export default class CeilingLight extends ModelObject {
         });
 
         this.cell = cell;
-
-        this.light = null;
         this.state = state;
+        this.light = null;
 
         addUpdatable(this);
     }
@@ -30,23 +29,21 @@ export default class CeilingLight extends ModelObject {
         this.state = state;
     }
 
+    lightPosition() {
+        return this.getWorldPosition(new THREE.Vector3()).sub(new THREE.Vector3(0, 0.5, 0));
+    }
+
     update(delta) {
-        if (this.position.distanceTo(player.object.position) < settings.maxNumLights * maze.config.cellSize) this.tryAddLight();
+        if (!this.culled && this.state) this.tryAddLight();
         else this.removeLight();
-
-        if (this.light == null) return;
-
-        this.light.intensity = 5;
     }
 
     tryAddLight() {
-        if (this.state && !this.light) {
-            this.light = ambientLighting.showCeilingLight(this.getWorldPosition(new THREE.Vector3()).sub(new THREE.Vector3(0, 0.5, 0)));
-        }
+        if (this.light === null) this.light = ambientLighting.showCeilingLight(this.lightPosition());
     }
 
     removeLight() {
-        if (this.light) {
+        if (this.light !== null) {
             ambientLighting.hideCeilingLight(this.light);
             this.light = null;
         }
@@ -55,11 +52,5 @@ export default class CeilingLight extends ModelObject {
     dispose() {
         super.dispose();
         this.removeLight();
-    }
-
-    hide(hide) {
-        super.hide(hide);
-        if (this.hide) this.tryAddLight();
-        else this.removeLight();
     }
 }

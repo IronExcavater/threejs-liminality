@@ -11,7 +11,7 @@ export default class WeepingAngel extends ModelObject {
         position = new THREE.Vector3(),
         rotation = new THREE.Euler(),
         teleportRadiusRange = [10, 20],
-        moveSpeed = 500,
+        moveSpeed = 100,
     }) {
         super({
             model: getModel('weepingAngel'),
@@ -56,6 +56,7 @@ export default class WeepingAngel extends ModelObject {
             if (other.id === ids.get('Player') && this.isMoving) {
                 console.log("Weeping Angel collided with player. Teleporting player...");
                 ambientSound.playGlobalSound('riser');
+                other.velocity.set(0, 0, 0);
                 fadeIn({
                     onComplete: () => {
                         player.setPosition(new THREE.Vector3(0, 0, 0));
@@ -81,7 +82,7 @@ export default class WeepingAngel extends ModelObject {
         switch (this.state) {
             case 'inactive':
                 this.velocity = new THREE.Vector3();
-                if (!this.isOccluded() && this.isSeenByPlayer() && distance < 10) {
+                if (!this.isOccluded() && this.isSeenByPlayer() && distance < 6) {
                     console.log("Angel ready!");
                     this.state = 'ready';
                 }
@@ -96,7 +97,7 @@ export default class WeepingAngel extends ModelObject {
                 }
                 break;
             case 'active':
-                if (this.isOccluded() || !this.isSeenByPlayer()) {
+                if (!this.isOccluded() && !this.isSeenByPlayer()) {
                     this.velocity = this.moveTowardsPlayer(delta);
                     this.isMoving = true;
                     this.hasMoved = true;
@@ -111,6 +112,10 @@ export default class WeepingAngel extends ModelObject {
                         this.sound.play();
                         this.hasMoved = false;
                     }
+                }
+
+                if (distance > 5 && this.isOccluded()) {
+                    this.state = 'inactive';
                 }
                 break;
         }

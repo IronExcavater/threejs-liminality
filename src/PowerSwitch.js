@@ -48,11 +48,10 @@ export default class PowerSwitch extends ModelObject {
         this.sound.setBuffer(getSound(canEscape() ? 'powerOn' : 'switch'));
         this.sound.play();
 
-        const powerSwitch = maze.findEntityFromWorld('powerSwitch', this.position.x, this.position.z);
-        console.log(powerSwitch);
+        //const powerSwitch = maze.findEntityFromWorld('powerSwitch', this.position.x, this.position.z);
+        const powerSwitch = maze.findEntityFromGrid('powerSwitch', this.cell.x, this.cell.y);
         if (powerSwitch != null) {
             powerSwitch.state = true;
-            console.log("running data changes")
             this.activateNearbyLights(powerSwitch);
         }
 
@@ -60,27 +59,16 @@ export default class PowerSwitch extends ModelObject {
     }
 
     activateNearbyLights(powerSwitch) {
-        for (const [key, value] of maze.ceilingLights) {
-            if (powerSwitch.cell.key() === key) {
-                console.log('power switch location in ceiling lights map found');
-                console.log(value);
-                for (const cell of value) {
-                    const ceilingLight = maze.findEntityFromGrid('ceilingLight', cell.x, cell.y);
-                    if (ceilingLight != null) {
-                        console.log('ceiling light entity in ceiling lights map found', cell);
-                        ceilingLight.state = true;
-                        const chunk = maze.gridToChunk(cell.x, cell.y);
-                        const chunkData = maze.instantiated.get(chunk.key());
-                        if (chunkData === undefined) continue;
-                        console.log(chunkData);
-                        for (const obj of chunkData) {
-                            if (obj instanceof CeilingLight && obj.cell.key() === cell.key()) {
-                                obj.state = true;
-                            }
-                        }
-                    }
+        for (const ceilingLight of powerSwitch.ceilingLights) {
+            ceilingLight.state = true;
+            const chunk = maze.worldToChunk(ceilingLight.x, ceilingLight.z);
+            const chunkData = maze.instantiated.get(chunk.key());
+            if (chunkData === undefined) continue;
+            for (const obj of chunkData) {
+                if (obj instanceof CeilingLight) {
+                    obj.state = true;
+                    break;
                 }
-                break;
             }
         }
     }
