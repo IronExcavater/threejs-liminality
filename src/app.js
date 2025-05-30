@@ -122,7 +122,7 @@ scene.add(ambientLight);
 
 await renderer.compileAsync(scene, camera);
 
-export const maze = new Maze();
+export let maze = new Maze();
 
 let activatedPower = 0;
 
@@ -208,5 +208,7 @@ export function reload() {
     weepingAngels = [];
     player.setPosition(new THREE.Vector3(0, 0, 0));
     player.setRotation(new THREE.Vector3());
+    maze.generate();
+    activatedPower = 0;
     fadeOut({});
 }

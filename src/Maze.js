@@ -81,6 +81,32 @@ class Maze {
         this.chunks = new Map(); // key: Cell.key() => string, value: array of data (x, y, w, h, type) with type = box, model, etc. and model type also with data to the model name.
         this.instantiated = new Map(); // key: Cell.key() => string, value: array of gameObjects
 
+        this.generate();
+
+        addUpdatable(this);
+    }
+
+    generate() {
+        for (const objs of this.instantiated.values()) {
+            objs.forEach(obj => obj.dispose());
+        }
+
+        this.entities = new Map(); // key: type, value: array of {x, y, attachDir}
+        this.paths = new Map(); // key: Cell.key() => string, value: cell
+
+        this.grid = new Map(); // key: Cell.key() => string, value: true/false (true=wall)
+
+        this.ceilingLights = new Map(); // key: closest power switch entity => Cell.key(), value: CeilingLight cell => Cell
+
+        for (let y = 0; y < this.config.mapSize; y++) {
+            for (let x = 0; x < this.config.mapSize; x++) {
+                this.setCell(x, y, true);
+            }
+        }
+
+        this.chunks = new Map(); // key: Cell.key() => string, value: array of data (x, y, w, h, type) with type = box, model, etc. and model type also with data to the model name.
+        this.instantiated = new Map(); // key: Cell.key() => string, value: array of gameObjects
+
         this.generateWalls();
         this.generateRooms();
         this.clearStartingArea();
@@ -103,8 +129,6 @@ class Maze {
         this.buildEntities(this.entityTypes.get('powerSwitch'), 0.05, 0);
 
         this.bindEntities();
-
-        addUpdatable(this);
     }
 
     getCell(x, y) {
