@@ -5,7 +5,7 @@ import {randomRange} from './utils.js';
 export default class AmbientLighting {
     constructor(
         durationRange = [10000, 15000],
-        delayRange = [20000, 40000],
+        delayRange = [0, 0],
         events = ['blackout', 'blood']
     ) {
 
