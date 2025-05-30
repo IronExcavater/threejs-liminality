@@ -42,7 +42,6 @@ export default class DynamicSpotLight extends THREE.SpotLight {
         this.flickerDuration -= delta;
         this.flickerCooldown -= delta;
         this.blackout -= delta;
-        console.log(this.blackout);
 
         this.intensity = ((this.enabled && this.blackout <= 0) ? (this.flickerDuration > 0 ? 1 : 5) : 0);
 
