@@ -71,6 +71,8 @@ class AmbientSound {
         const delay = randomRange(this.delayRange[0], this.delayRange[1]);
 
         setTimeout(() => {
+            console.log('triggerAmbientSound');
+
             const origin = player.object.position.clone();
             const angle = randomRange(0, 359);
             const distance = randomRange(this.distanceRange[0], this.distanceRange[1]);

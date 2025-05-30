@@ -197,7 +197,7 @@ export function removeUpdatable(obj) {
 }
 
 function updateSettings() {
-    fog.far = settings.renderDistance * 3;
+    fog.far = (settings.renderDistance / 2) * maze.config.chunkSize * maze.config.cellSize;
 }
 
 export function reload() {

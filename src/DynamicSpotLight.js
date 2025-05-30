@@ -14,11 +14,11 @@ export default class DynamicSpotLight extends THREE.SpotLight {
         this.sound.setVolume(0.1);
         this.sound.setLoop(true);
         this.sound.setBuffer(getSound('lightHum'));
-        this.sound.play();
         this.add(this.sound);
 
         this.flickerDuration = 0;
         this.flickerCooldown = 0;
+        this.blackout = 0;
 
         this.distanceSquared = 0;
 
@@ -41,19 +41,23 @@ export default class DynamicSpotLight extends THREE.SpotLight {
 
         this.flickerDuration -= delta;
         this.flickerCooldown -= delta;
+        this.blackout -= delta;
+        console.log(this.blackout);
 
-        this.intensity = this.enabled ? this.flickerDuration > 0 ? 1 : 5 : 0;
+        this.intensity = ((this.enabled && this.blackout <= 0) ? (this.flickerDuration > 0 ? 1 : 5) : 0);
 
-        if (this.sound.getLoop() && !this.enabled) this.sound.setLoopEnd(performance.now());
-        if (!this.sound.getLoop() && this.enabled) this.sound.setLoopStart(performance.now());
+        if (this.sound.isPlaying && (!this.enabled || this.blackout > 0)) {
+            console.log(this.enabled);
+            this.sound.stop();
+        }
+        if (!this.sound.isPlaying && this.enabled && this.blackout <= 0) this.sound.play();
 
     }
 
     triggerLightingEvent(eventName, eventDuration) {
         switch (eventName) {
             case 'blackout':
-                this.flickerDuration = eventDuration;
-                this.flickerCooldown = eventDuration;
+                this.blackout = eventDuration / 1000;
                 break;
             case 'blood':
                 new Tween({
