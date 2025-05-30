@@ -114,7 +114,7 @@ export default class WeepingAngel extends ModelObject {
                     }
                 }
 
-                if (distance > 5 && this.isOccluded()) {
+                if (distance > this.teleportRadiusRange[0] && this.isOccluded()) {
                     this.state = 'inactive';
                 }
                 break;

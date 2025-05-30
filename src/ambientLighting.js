@@ -82,6 +82,7 @@ export default class AmbientLighting {
     }
 
     triggerLightingEvent(eventName, eventDuration) {
+        console.log('triggerLightingEvent', eventName, eventDuration);
         this.ceilingLights.forEach(ceilingLight => ceilingLight.triggerLightingEvent(eventName, eventDuration));
     }
 }
