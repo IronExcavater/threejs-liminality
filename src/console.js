@@ -111,7 +111,7 @@ export function executeCommand(command) {
             ambientLight.intensity = debug.fullbright ? 1 : 0.001;
             break;
         default:
-            log.innerHTML += `Unknown command: ${cmd}<br>`;
+            log.innerHTML += `Unknown command: ${cmd}<br>Type 'help' to view available commands<br>`;
             break;
     }
 
