@@ -11,7 +11,6 @@ export default class Furniture extends ModelObject {
         position = new THREE.Vector3(0, 0, 0),
         rotation = new THREE.Euler(0, 0, 0),
     }) {
-
         const model = getFurniture(modelName);
         // Compute bounding box and offset
         const box = new THREE.Box3().setFromObject(model.scene);
@@ -30,7 +29,8 @@ export default class Furniture extends ModelObject {
         this.cell = cell;
         this.interactCallback = this.onInteract.bind(this);
         this.canInteract = true;        
-    }
+        console.log("Furniture instantiated", modelName, position);
+    } 
 
     onInteract(player) {
         console.log("Interacted with furniture at cell:", this.cell);

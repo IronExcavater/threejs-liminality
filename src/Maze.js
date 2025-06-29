@@ -131,6 +131,7 @@ class Maze {
         this.buildEntities(this.entityTypes.get('ceilingLight'), 0, 0.98);
         this.buildEntities(this.entityTypes.get('exitDoor'), 0.04, -0.25);
         this.buildEntities(this.entityTypes.get('powerSwitch'), 0.05, 0);
+        this.buildEntities(this.entityTypes.get('furniture'), 0, 0); // NEW CODE
 
         this.bindEntities();
        // this.buildTestFurniture(); works. Now to integrate random spawning of furniture // NEW CODE
@@ -350,7 +351,7 @@ class Maze {
                 // Special logic for furniture // NEW CODE
                 if (type === this.entityTypes.get('furniture')) {
                     const modelName = furnitureModels[Math.floor(Math.random() * furnitureModels.length)];
-                    let posY = (modelName.startsWith('chair')) ? 0.4 : 0.5;
+                    let posY = (modelName.startsWith('table')) ? 0.4 : 0.6;
                     let rotY = Math.random() * Math.PI * 2;
                     placed.push({
                         ...found,
@@ -557,7 +558,9 @@ class Maze {
                                 obj = new CeilingLight({
                                     cell: item.cell, position: pos, rotation: rot, state: item.state
                                 });
-                            } else if (this.entityTypes.get('furniture') === item.entityType) {
+                            }
+                        }  
+                        else if (this.entityTypes.get('furniture') === item.entityType) {
                                 const pos = new THREE.Vector3(item.x, item.y, item.z);
                                 const rot = new THREE.Euler(0, item.rot, 0);
                                 obj = new Furniture({
@@ -568,7 +571,6 @@ class Maze {
                                     rotation: rot
                                 });
                             }
-                        }
 
                         if (obj) this.instantiated.get(chunk.key()).push(obj);
                     }
@@ -701,8 +703,7 @@ class Maze {
                     z: cell.y * this.config.cellSize - worldOrigin.y,
                     rot: entity.rotY,
                 });
-            } else {
-                // ...existing code for other entity types...
+            } else {                
                 const baseX = cell.x * this.config.cellSize - worldOrigin.x;
                 const baseZ = cell.y * this.config.cellSize - worldOrigin.y;
                 const dx = entity.dir[0] * (this.config.cellSize / 2 - directionOffset);
