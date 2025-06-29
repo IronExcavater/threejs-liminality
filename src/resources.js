@@ -153,5 +153,6 @@ export const preloadResources = (async () => {
         loadModel('exitDoor', 'assets/models/exit-door/scene.gltf'),
         loadModel('ceilingLight', 'assets/models/ceiling-light/scene.gltf'),
         loadModel('weepingAngel', 'assets/models/weeping-angel/scene.gltf'),
+        loadModel('furniture', 'assets/models/furniture/scene.gltf'),
     ]);
 });
