@@ -1,0 +1,11 @@
+Model Information:
+* title:	School furniture pack
+* source:	https://sketchfab.com/3d-models/school-furniture-pack-1728f921efaf48a8a2627bfd97cf05f2
+* author:	sergeilihandristov (https://sketchfab.com/sergeilihandristov)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "School furniture pack" (https://sketchfab.com/3d-models/school-furniture-pack-1728f921efaf48a8a2627bfd97cf05f2) by sergeilihandristov (https://sketchfab.com/sergeilihandristov) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
