@@ -70,7 +70,8 @@ class Maze {
         this.entityTypes = new Map([
             ['ceilingLight', 1],
             ['exitDoor', 2],
-            ['powerSwitch', 3]
+            ['powerSwitch', 3],
+            ['furniture', 4], // NEW CODE
         ]);
 
         for (let y = 0; y < this.config.mapSize; y++) {
@@ -115,6 +116,7 @@ class Maze {
 
         this.generateEntities(this.entityTypes.get('exitDoor'), 30, 30, 10);
         this.generateEntities(this.entityTypes.get('powerSwitch'), 250, 10, 10);
+        this.generateEntities(this.entityTypes.get('furniture'), 500, 5, 1, {onWall: false}); // NEW CODE
 
         this.entities.forEach(arr => arr.forEach(({cell}) => this.createPath(this.origin(), cell)));
 
@@ -131,7 +133,7 @@ class Maze {
         this.buildEntities(this.entityTypes.get('powerSwitch'), 0.05, 0);
 
         this.bindEntities();
-        this.buildTestFurniture();
+       // this.buildTestFurniture(); works. Now to integrate random spawning of furniture // NEW CODE
 
     }
 
@@ -328,6 +330,14 @@ class Maze {
         const visited = new Set([origin.key()]);
 
         this.entities.set(type, []);
+        const furnitureModels = [ // NEW CODE
+            'chair_031',
+            'chair_030',
+            'table_016',
+            'bookCaseV2_004',
+            'bookCaseV2_005',
+            'bookCaseV2_006'
+        ];
 
         while (!heap.isEmpty()) {
             const cell = heap.pop();
@@ -337,10 +347,24 @@ class Maze {
 
             const found = this.findCellNear(cell, tolerance, cellConditions);
             if (found) {
-                placed.push(found);
-                console.log(`Placed entity of type ${type} at (${found.cell.x}, ${found.cell.y})`);
-            }
-            else continue;
+                // Special logic for furniture // NEW CODE
+                if (type === this.entityTypes.get('furniture')) {
+                    const modelName = furnitureModels[Math.floor(Math.random() * furnitureModels.length)];
+                    let posY = (modelName.startsWith('chair')) ? 0.4 : 0.5;
+                    let rotY = Math.random() * Math.PI * 2;
+                    placed.push({
+                        ...found,
+                        modelName,
+                        posY,
+                        rotY
+                    });
+                    console.log(`Placed entity of type ${type} (${modelName}) at (${found.cell.x}, ${found.cell.y})`);
+
+                } else {
+                    placed.push(found);
+                    console.log(`Placed entity of type ${type} at (${found.cell.x}, ${found.cell.y})`);
+                }
+            } else continue;
 
             for (const [dx, dy] of this.directions()) {
                 const neighbor = new Cell(cell.x + dx * spacing, cell.y + dy * spacing);
@@ -533,6 +557,16 @@ class Maze {
                                 obj = new CeilingLight({
                                     cell: item.cell, position: pos, rotation: rot, state: item.state
                                 });
+                            } else if (this.entityTypes.get('furniture') === item.entityType) {
+                                const pos = new THREE.Vector3(item.x, item.y, item.z);
+                                const rot = new THREE.Euler(0, item.rot, 0);
+                                obj = new Furniture({
+                                    cell: item.cell,
+                                    modelName: item.modelName,
+                                    position: pos,
+                                    scale: new THREE.Vector3(1.2, 1.2, 1.2),
+                                    rotation: rot
+                                });
                             }
                         }
 
@@ -584,41 +618,41 @@ class Maze {
         });
     }
 
-    buildTestFurniture() {
-        // Generate furniture // NEW CODE
-        const furnitureModels = [
-            'chair_031',
-            'chair_030',
-            'table_016',
-            'bookCaseV2_004',
-            'bookCaseV2_005',
-            'bookCaseV2_006'
-        ];
+    // buildTestFurniture() {
+    //     // Generate furniture // NEW CODE
+    //     const furnitureModels = [
+    //         'chair_031',
+    //         'chair_030',
+    //         'table_016',
+    //         'bookCaseV2_004',
+    //         'bookCaseV2_005',
+    //         'bookCaseV2_006'
+    //     ];
 
-        const origin = this.origin();
-        const worldOrigin = this.worldOrigin();
-        const spacing = 3; // space between each furniture
+    //     const origin = this.origin();
+    //     const worldOrigin = this.worldOrigin();
+    //     const spacing = 3; // space between each furniture
 
-        furnitureModels.forEach((modelName, i) => {
+    //     furnitureModels.forEach((modelName, i) => {
 
-            let y = (modelName.startsWith('table')) ? 0.4 : 0.6;
+    //         let y = (modelName.startsWith('table')) ? 0.4 : 0.6;
 
-            const pos = new THREE.Vector3(
-                (origin.x + (i - 2) * spacing) * this.config.cellSize - worldOrigin.x,
-                y, // test raise above floor
-                origin.y * this.config.cellSize - worldOrigin.y
-            );
-            new Furniture({
-                cell: new Cell(origin.x + (i - 2) * spacing, origin.y),
-                modelName,
-                position: pos, // raise above floor
-                scale: new THREE.Vector3(1,1,1),
-                rotation: new THREE.Euler(0, 0, 0)
-            });
-            // Optionally, add to a list or scene if needed
-        });
-        // --- END TEST ---
-    }
+    //         const pos = new THREE.Vector3(
+    //             (origin.x + (i - 2) * spacing) * this.config.cellSize - worldOrigin.x,
+    //             y, // test raise above floor
+    //             origin.y * this.config.cellSize - worldOrigin.y
+    //         );
+    //         new Furniture({
+    //             cell: new Cell(origin.x + (i - 2) * spacing, origin.y),
+    //             modelName,
+    //             position: pos, // raise above floor
+    //             scale: new THREE.Vector3(1,1,1),
+    //             rotation: new THREE.Euler(0, 0, 0)
+    //         });
+    //         // Optionally, add to a list or scene if needed
+    //     });
+    //     // --- END TEST ---
+    // }
 
     buildWalls() {
         for (let y = 0; y < this.config.mapSize; y++) {
@@ -650,35 +684,48 @@ class Maze {
     }
 
     buildEntities(type, directionOffset = 0, yPositionOffset = 0) {
-
-        for (const { cell, dir } of this.entities.get(type)) {
+        for (const entity of this.entities.get(type)) {
+            const cell = entity.cell;
             const chunk = this.gridToChunk(cell.x, cell.y);
-
             const worldOrigin = this.worldOrigin();
 
-            const baseX = cell.x * this.config.cellSize - worldOrigin.x;
-            const baseZ = cell.y * this.config.cellSize - worldOrigin.y;
+            if (type === this.entityTypes.get('furniture')) {
+                // Use stored modelName, posY, rotY
+                this.getChunk(chunk.x, chunk.y).push({
+                    type: 'furniture',
+                    entityType: type,
+                    cell: cell,
+                    modelName: entity.modelName,
+                    y: entity.posY,
+                    x: cell.x * this.config.cellSize - worldOrigin.x,
+                    z: cell.y * this.config.cellSize - worldOrigin.y,
+                    rot: entity.rotY,
+                });
+            } else {
+                // ...existing code for other entity types...
+                const baseX = cell.x * this.config.cellSize - worldOrigin.x;
+                const baseZ = cell.y * this.config.cellSize - worldOrigin.y;
+                const dx = entity.dir[0] * (this.config.cellSize / 2 - directionOffset);
+                const dz = entity.dir[1] * (this.config.cellSize / 2 - directionOffset);
 
-            const dx = dir[0] * (this.config.cellSize / 2 - directionOffset);
-            const dz = dir[1] * (this.config.cellSize / 2 - directionOffset);
-
-            let state = false;
-            if (type === this.entityTypes.get('ceilingLight')) {
-                if (Cell.manhattan(cell, this.origin()) < 10) {
-                    state = true;
+                let state = false;
+                if (type === this.entityTypes.get('ceilingLight')) {
+                    if (Cell.manhattan(cell, this.origin()) < 10) {
+                        state = true;
+                    }
                 }
-            }
 
-            this.getChunk(chunk.x, chunk.y).push({
-                type: 'entity',
-                entityType: type,
-                state: state,
-                cell: cell,
-                x: baseX + dx,
-                y: this.config.wallHeight / 2 + yPositionOffset,
-                z: baseZ + dz,
-                rot: Math.atan2(dir[0], dir[1]),
-            });
+                this.getChunk(chunk.x, chunk.y).push({
+                    type: 'entity',
+                    entityType: type,
+                    state: state,
+                    cell: cell,
+                    x: baseX + dx,
+                    y: this.config.wallHeight / 2 + yPositionOffset,
+                    z: baseZ + dz,
+                    rot: Math.atan2(entity.dir[0], entity.dir[1]),
+                });
+            }
         }
     }
 

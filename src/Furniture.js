@@ -8,8 +8,8 @@ export default class Furniture extends ModelObject {
         cell,
         modelName = 'chair_031',
         scale = new THREE.Vector3(1, 1, 1),
-        position = new THREE.Vector3.zero,
-        rotation = new THREE.Euler.identity,
+        position = new THREE.Vector3(0, 0, 0),
+        rotation = new THREE.Euler(0, 0, 0),
     }) {
 
         const model = getFurniture(modelName);
