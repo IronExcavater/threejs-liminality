@@ -116,7 +116,7 @@ class Maze {
 
         this.generateEntities(this.entityTypes.get('exitDoor'), 30, 30, 10);
         this.generateEntities(this.entityTypes.get('powerSwitch'), 250, 10, 10);
-        this.generateEntities(this.entityTypes.get('furniture'), 750, 5, 1, {onWall: false}); // NEW CODE
+        this.generateEntities(this.entityTypes.get('furniture'), 750, 4, 2, {onWall: false}); // NEW CODE
 
         this.entities.forEach(arr => arr.forEach(({cell}) => this.createPath(this.origin(), cell)));
 
