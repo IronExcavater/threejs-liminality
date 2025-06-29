@@ -116,7 +116,7 @@ class Maze {
 
         this.generateEntities(this.entityTypes.get('exitDoor'), 30, 30, 10);
         this.generateEntities(this.entityTypes.get('powerSwitch'), 250, 10, 10);
-        this.generateEntities(this.entityTypes.get('furniture'), 500, 5, 1, {onWall: false}); // NEW CODE
+        this.generateEntities(this.entityTypes.get('furniture'), 750, 5, 1, {onWall: false}); // NEW CODE
 
         this.entities.forEach(arr => arr.forEach(({cell}) => this.createPath(this.origin(), cell)));
 
@@ -351,7 +351,7 @@ class Maze {
                 // Special logic for furniture // NEW CODE
                 if (type === this.entityTypes.get('furniture')) {
                     const modelName = furnitureModels[Math.floor(Math.random() * furnitureModels.length)];
-                    let posY = (modelName.startsWith('table')) ? 0.4 : 0.6;
+                    let posY = (modelName.startsWith('table')) ? 0.4 : 0.6; // fixes height to match floor.
                     let rotY = Math.random() * Math.PI * 2;
                     placed.push({
                         ...found,
@@ -560,7 +560,7 @@ class Maze {
                                 });
                             }
                         }  
-                        else if (this.entityTypes.get('furniture') === item.entityType) {
+                        else if (this.entityTypes.get('furniture') === item.entityType) { // NEW CODE
                                 const pos = new THREE.Vector3(item.x, item.y, item.z);
                                 const rot = new THREE.Euler(0, item.rot, 0);
                                 obj = new Furniture({
@@ -570,7 +570,7 @@ class Maze {
                                     scale: new THREE.Vector3(1.2, 1.2, 1.2),
                                     rotation: rot
                                 });
-                            }
+                        }
 
                         if (obj) this.instantiated.get(chunk.key()).push(obj);
                     }

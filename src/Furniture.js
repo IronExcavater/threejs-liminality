@@ -6,7 +6,7 @@ import {addUpdatable, player, settings} from './app.js';
 export default class Furniture extends ModelObject {
     constructor({
         cell,
-        modelName = 'chair_031',
+        modelName = 'chair_031', // Default model to load.
         scale = new THREE.Vector3(1, 1, 1),
         position = new THREE.Vector3(0, 0, 0),
         rotation = new THREE.Euler(0, 0, 0),
