@@ -107,6 +107,27 @@ export function getModel(name) {
     };
 }
 
+export function getFurniture(modelName) { // NEW CODE
+    const furniture = models['furniture'];
+    if (!furniture || !furniture.scene) return null;
+    if (!modelName) {
+        // Return the whole scene if no nodeName is given
+        return {
+            scene: furniture.scene.clone(true),
+            animations: furniture.animations,
+        };
+    }
+    const found = furniture.scene.getObjectByName(nodeName);
+    if (!found) {
+        console.warn(`Furniture node "${nodeName}" not found`);
+        return null;
+    }
+    return {
+        scene: found.clone(true),
+        animations: furniture.animations,
+    }; 
+}
+
 export const preloadResources = (async () => {
     // Preload textures, materials, sounds
     loadTextureSet('carpet', 'assets/textures/carpet');

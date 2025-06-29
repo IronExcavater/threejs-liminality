@@ -7,6 +7,7 @@ import { Heap } from 'heap-js'
 import PowerSwitch from './PowerSwitch.js';
 import ExitDoor from './ExitDoor.js';
 import CeilingLight from './CeilingLight.js';
+import Furniture from './Furniture.js';
 
 class Cell {
     constructor(x, y) {
