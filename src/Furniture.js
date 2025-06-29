@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {ModelObject} from './GameObject.js';
 import {getFurniture} from './resources.js';
-import {addUpdatable, maze, player, settings} from './app.js';
+import {addUpdatable, player, settings} from './app.js';
 
 export default class Furniture extends ModelObject {
     constructor({
@@ -11,8 +11,16 @@ export default class Furniture extends ModelObject {
         position = new THREE.Vector3.zero,
         rotation = new THREE.Euler.identity,
     }) {
+
+        const model = getFurniture(modelName);
+        // Compute bounding box and offset
+        const box = new THREE.Box3().setFromObject(model.scene);
+        const minY = box.min.y;
+        // Shift the model up so its bottom sits at y=0
+        model.scene.position.y -= minY;
+
         super({
-            model: getFurniture('furniture', modelName),
+            model: getFurniture(modelName),
             scale: scale,
             position: position,
             rotation: rotation,
@@ -21,7 +29,7 @@ export default class Furniture extends ModelObject {
 
         this.cell = cell;
         this.interactCallback = this.onInteract.bind(this);
-        this.canInteract = true;
+        this.canInteract = true;        
     }
 
     onInteract(player) {

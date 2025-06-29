@@ -111,15 +111,15 @@ export function getFurniture(modelName) { // NEW CODE
     const furniture = models['furniture'];
     if (!furniture || !furniture.scene) return null;
     if (!modelName) {
-        // Return the whole scene if no nodeName is given
+        // Return the whole scene if no modelName is given
         return {
             scene: furniture.scene.clone(true),
             animations: furniture.animations,
         };
     }
-    const found = furniture.scene.getObjectByName(nodeName);
+    const found = furniture.scene.getObjectByName(modelName);
     if (!found) {
-        console.warn(`Furniture node "${nodeName}" not found`);
+        console.warn(`Furniture node "${modelName}" not found`);
         return null;
     }
     return {

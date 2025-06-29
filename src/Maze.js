@@ -124,12 +124,15 @@ class Maze {
         this.printGrid();
 
         this.buildFloorCeiling();
+        
         this.buildWalls();
         this.buildEntities(this.entityTypes.get('ceilingLight'), 0, 0.98);
         this.buildEntities(this.entityTypes.get('exitDoor'), 0.04, -0.25);
         this.buildEntities(this.entityTypes.get('powerSwitch'), 0.05, 0);
 
         this.bindEntities();
+        this.buildTestFurniture();
+
     }
 
     getCell(x, y) {
@@ -579,6 +582,42 @@ class Maze {
             position: new THREE.Vector3(0, this.config.wallHeight, 0),
             rotation: new THREE.Euler(Math.PI / 2, 0, 0),
         });
+    }
+
+    buildTestFurniture() {
+        // Generate furniture // NEW CODE
+        const furnitureModels = [
+            'chair_031',
+            'chair_030',
+            'table_016',
+            'bookCaseV2_004',
+            'bookCaseV2_005',
+            'bookCaseV2_006'
+        ];
+
+        const origin = this.origin();
+        const worldOrigin = this.worldOrigin();
+        const spacing = 3; // space between each furniture
+
+        furnitureModels.forEach((modelName, i) => {
+
+            let y = (modelName.startsWith('table')) ? 0.4 : 0.6;
+
+            const pos = new THREE.Vector3(
+                (origin.x + (i - 2) * spacing) * this.config.cellSize - worldOrigin.x,
+                y, // test raise above floor
+                origin.y * this.config.cellSize - worldOrigin.y
+            );
+            new Furniture({
+                cell: new Cell(origin.x + (i - 2) * spacing, origin.y),
+                modelName,
+                position: pos, // raise above floor
+                scale: new THREE.Vector3(1,1,1),
+                rotation: new THREE.Euler(0, 0, 0)
+            });
+            // Optionally, add to a list or scene if needed
+        });
+        // --- END TEST ---
     }
 
     buildWalls() {
