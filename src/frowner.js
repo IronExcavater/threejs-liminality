@@ -3,8 +3,7 @@ import {ModelObject} from './GameObject.js';
 import {getModel, getSound} from './resources.js';
 import {addUpdatable, ambientSound, audioListener, ids, player, scene} from './app.js';
 import {randomRange} from './utils.js';
-import {fadeIn, fadeOut} from './transition.js';
-import {walkSpeed, runSpeed} from './Player.js';
+import {Tween} from './tween.js';
 
 
 export default class frowner extends ModelObject {
@@ -12,8 +11,8 @@ export default class frowner extends ModelObject {
         scale = new THREE.Vector3(1, 1, 1),
         position = new THREE.Vector3(),
         rotation = new THREE.Euler(),
+        teleportRadiusRange = [10, 20],
         moveSpeed = 150,
-        attached = false
     }) {
         super ({
             model: getModel ('frownMask'),
@@ -24,13 +23,29 @@ export default class frowner extends ModelObject {
             mass: 500,
         });
 
+        this.isMoving = false;
+        this.hasMoved = false;
+        this.attached = false;
+
+        this._meshes = [];
+        this.traverse(obj => {
+            if (obj.isMesh) this._meshes.push(obj);
+        });
+
+        this.teleportRadiusRange = teleportRadiusRange;
+        this.moveSpeed = moveSpeed;
+        this.velocity = new THREE.Vector3();
+        this._raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(), 0, 20);
+        
+        this.teleportNearby();
+
         this.body.addEventListener('collide', (e) => {
                     const other = e.body;
         
-                    if (other.id === ids.get('Player') && this.isMoving && attached == false) {
+                    if (other.id === ids.get('Player') && this.isMoving && this.attached == false) {
                         console.log("Da frowner has latched onto you uh oh spaghettio");
                         ambientSound.playGlobalSound('riser');
-                        attached = true;
+                        this.attached = true;
                         new Tween({
                                     setter: quaternion => this.quaternion.copy(quaternion),
                                     startValue: this.quaternion.clone(),
@@ -39,11 +54,10 @@ export default class frowner extends ModelObject {
                                         euler.y += Math.PI;
                                         return new THREE.Quaternion().setFromEuler(euler);
                                     },
-                                    duration: 1,
+                                    duration: 0.01,
                                 });
-                        other.position = player.object.localToWorld(new THREE.Vector2(0, 0, 0));
-                        //adjust to ideally cover the players face
-                        
+                        other.position = player.object.localToWorld(new THREE.Vector3(0, 0, 0));
+                        //adjust to ideally cover the players face   
                     }
             });
 
@@ -99,6 +113,7 @@ export default class frowner extends ModelObject {
 
     destroyFrowner(scene) {
         console.log("Frowner ded :/")
-            
+        scene.remove(this);
+        world.removeBody(this.body);
     }
 }
