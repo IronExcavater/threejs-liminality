@@ -50,12 +50,30 @@ export default class frowner extends ModelObject {
         addUpdatable(this);
     }
 
+    isOccluded() {
+        const toAngel = new THREE.Vector3().subVectors(this.position, player.object.position).normalize();
+        this._raycaster.set(player.object.position, toAngel);
+        const intersects = this._raycaster.intersectObjects(scene.children, true);
+        if (intersects.length > 0) {
+            let obj = intersects[0].object;
+            return this !== obj && !this._meshes.includes(obj);
+        }
+            return false;
+    }
+    
+    isSeenByPlayer() {
+        const toAngel = new THREE.Vector3().subVectors(this.position, player.object.position).normalize();
+        const forward = player.object.getWorldDirection(new THREE.Vector3()).negate();
+        const dot = toAngel.dot(forward); 
+        return dot >= 0;
+    }
+    
     teleportNearby() {
         const angle = Math.random() * Math.PI * 2;
         const radius = randomRange(this.teleportRadiusRange[0], this.teleportRadiusRange[1]);
         const dx = Math.cos(angle) * radius;
         const dz = Math.sin(angle) * radius;
-
+    
         this.position.set(
             player.object.position.x + dx,
             this.position.y,
@@ -63,5 +81,24 @@ export default class frowner extends ModelObject {
         );
         console.log(`Frowner teleported to: (${this.position.x},${this.position.z})`);
         this.rotation.set(0, randomRange(0, 359, 0), 0);
+    }
+    
+    moveTowardsPlayer(delta) {
+        console.log("Da frowner is moving toward player.");
+        const step = this.moveSpeed * delta;
+        const direction = new THREE.Vector3().subVectors(player.object.position, this.position);
+        direction.y = 0;
+        direction.normalize();
+    
+        const angle = Math.atan2(-direction.x, -direction.z);
+        this.rotation.set(0, angle, 0);
+    
+        direction.multiplyScalar(step);
+        return direction;
+        }
+
+    destroyFrowner(scene) {
+        console.log("Frowner ded :/")
+            
     }
 }
