@@ -70,14 +70,10 @@ class Player {
         this.sound.setVolume(1);
         this.object.add(this.sound);
 
-        this.lookControls = new PointerLockControls(this.object, renderer.domElement);
+        this.lookControls = new PointerLockControls(this.object, document.body);
         this.lookControls.pointerSpeed = 0.5;
         this.lookControls.minPolarAngle = Math.PI / 5;
         this.lookControls.maxPolarAngle = 4 * Math.PI / 5;
-
-        document.body.addEventListener('click', _ => {
-            this.lookControls.lock();
-        });
 
         this.glowlight = new THREE.PointLight(0xffffff, 1, 20, 0.8);
         this.glowlight.position.sub(new THREE.Vector3(0, height * 0.7, 0));

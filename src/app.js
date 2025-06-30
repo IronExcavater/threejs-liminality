@@ -10,12 +10,13 @@ import {updateConsole} from './console.js';
 import Flashlight from './Flashlight.js';
 import WeepingAngel from './WeepingAngel.js';
 import {preloadResources} from './resources.js';
-import {fadeOut} from './transition.js';
+import {fadeIn, fadeOut} from './transition.js';
 import AmbientSound from './ambientSound.js';
 import AmbientLighting from './ambientLighting.js';
 import './utils.js';
 
 import '/styles/app.css';
+import '/styles/pause.css';
 
 const updatables = [];
 const clock = new THREE.Clock();
@@ -31,6 +32,8 @@ export const collisionFilters = new Map([ // Must be powers of 2
 
 await preloadResources();
 
+let isLoading = true;
+
 // Core three.js components
 export const scene = new THREE.Scene();
 export const camera = new THREE.PerspectiveCamera(
@@ -44,7 +47,7 @@ export const renderer = new THREE.WebGLRenderer({
 renderer.shadowMap.enabled = true;
 renderer.setClearColor(0x000000);
 document.body.appendChild(renderer.domElement);
-renderer.setAnimationLoop(() => update(clock.getDelta()));
+renderer.setAnimationLoop(() => update(clock.getDelta(), isPaused));
 
 export const composer = new EffectComposer(renderer);
 
@@ -151,14 +154,18 @@ const flashlight = new Flashlight({
     rotation: new THREE.Euler(),
 });
 
-let weepingAngels = [];
-fadeOut({});
+const masterGain = audioListener.context.createGain();
+masterGain.connect(audioListener.context.destination);
+audioListener.gain.disconnect(); // Remove default connection
+audioListener.gain.connect(masterGain); // Re-route through custom gain
+
+// Expose for fade control
+export const audioMaster = masterGain;
+
+export let weepingAngels = [];
 
 export const ambientSound = new AmbientSound();
-ambientSound.startLoop();
-
 export const ambientLighting = new AmbientLighting();
-ambientLighting.startLoop();
 
 function windowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -169,13 +176,121 @@ function windowResize() {
     bloomPass.resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
 }
 
-function update(delta) {
-    world.fixedStep();
+isLoading = false;
+let isPaused = true;
+const pauseMenu = document.getElementById('pause-menu');
+const resumeButton = document.getElementById('resume-button');
+const restartButton = document.getElementById('restart-button');
+
+let currentMenu = 'main';
+
+const mainMenu = document.getElementById('main-menu');
+const instructionsMenu = document.getElementById('instructions-menu');
+const creditsMenu = document.getElementById('credits-menu');
+
+const instructionsButton = document.getElementById('instructions-button');
+const creditsButton = document.getElementById('credits-button');
+const backButtons = document.querySelectorAll('.back-button');
+
+player.lookControls.addEventListener('lock', _ => {
+    isPaused = false;
+    pauseMenu.classList.remove('fade-in');
+    pauseMenu.classList.add('fade-out');
+    ambientSound.startLoop();
+    ambientLighting.startLoop();
+    fadeAudio(1, 1.0);
+});
+
+player.lookControls.addEventListener('unlock', _ => {
+    isPaused = true;
+    pauseMenu.classList.remove('fade-out');
+    pauseMenu.classList.add('fade-in');
+    ambientSound.stopLoop();
+    ambientLighting.stopLoop();
+    fadeAudio(0, 1.0);
+});
+
+resumeButton.addEventListener('click', () => {
+    if (isLoading) return;
+    isLoading = true;
+    pauseMenu.classList.remove('fade-in');
+    pauseMenu.classList.add('fade-out');
+
+    setTimeout(() => {
+        player.lookControls.lock();
+        isLoading = false;
+    }, 1000);
+});
+
+restartButton.addEventListener('click', () => {
+    if (isLoading) return;
+    isLoading = true;
+    fadeIn({
+        onComplete: () => {
+            reload();
+            maze.update();
+            fadeOut({
+                onComplete: () => isLoading = false
+            });
+        }
+    });
+});
+
+document.addEventListener('keydown', e => {
+    if (isPaused && e.key === 'Escape') {
+        if (currentMenu !== 'main') {
+            switchMenu('main');
+        }
+    }
+});
+
+function switchMenu(to) {
+    const menus = {
+        main: mainMenu,
+        instructions: instructionsMenu,
+        credits: creditsMenu
+    };
+
+    for (const [key, el] of Object.entries(menus)) {
+        if (key === to) {
+            el.classList.remove('fade-out')
+            el.classList.add('fade-in');
+        } else {
+            el.classList.remove('fade-in')
+            el.classList.add('fade-out');
+        }
+    }
+
+    currentMenu = to;
+    const submenuContainer = document.querySelector('.submenu-container');
+    if (submenuContainer) submenuContainer.scrollTop = 0;
+}
+
+switchMenu('main');
+
+instructionsButton.addEventListener('click', () => switchMenu('instructions'));
+creditsButton.addEventListener('click', () => switchMenu('credits'));
+backButtons.forEach(btn => btn.addEventListener('click', () => switchMenu('main')));
+
+function fadeAudio(toValue, duration = 1.0) {
+    const now = audioListener.context.currentTime;
+    audioMaster.gain.cancelScheduledValues(now);
+    audioMaster.gain.setValueAtTime(audioMaster.gain.value, now);
+    audioMaster.gain.linearRampToValueAtTime(toValue, now + duration);
+}
+
+update(0, false);
+
+fadeOut({});
+
+function update(delta, isPaused) {
+    if (!isPaused) world.fixedStep();
+
     updateConsole();
     updateTweens(delta);
     updateSettings();
 
-    for (const obj of updatables) obj.update(delta);
+    if (!isPaused) for (const obj of updatables) obj.update(delta);
     composer.render();
 }
 
@@ -201,6 +316,7 @@ function updateSettings() {
 }
 
 export function reload() {
+    console.log('reload');
     weepingAngels.forEach(weepingAngel => {
         scene.remove(weepingAngel);
         weepingAngel.dispose();
@@ -210,5 +326,4 @@ export function reload() {
     player.setRotation(new THREE.Vector3());
     maze.generate();
     activatedPower = 0;
-    fadeOut({});
 }

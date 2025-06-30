@@ -1,0 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Inter:wght@400;600&display=swap');
+
+.menu {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    backdrop-filter: blur(10px);
+    background-color: rgba(0, 0, 0, 0.3);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.6s ease;
+}
+
+.header-container {
+    flex: 0 0 30%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 20px;
+    text-align: center;
+}
+
+.header-container h2 {
+    font-family: 'Share Tech Mono', sans-serif;
+    font-size: 3em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: white;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.header-container p {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1em;
+    margin-top: 10px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.submenu-container {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.submenu {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80%;
+    max-width: 900px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    gap: 8px;
+    margin-bottom: 50px;
+    overflow-y: auto;
+    max-height: 90%;
+
+    mask-image: linear-gradient(to bottom, transparent 0%, white 10%, white 90%, transparent 100%);
+    mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+}
+
+.submenu p {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.2em;
+    line-height: 1.5;
+    margin: 5px 0;
+    color: white;
+    text-align: left;
+    width: 100%;
+}
+
+.submenu code {
+    font-family: 'Share Tech Mono', sans-serif;
+    color: #aad6ff;
+}
+
+.submenu h3 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.8em;
+    text-transform: uppercase;
+    color: #fff;
+    margin: 5px 0 5px;
+    align-self: flex-start;
+}
+
+.submenu a {
+    color: #aad6ff;
+    text-decoration: underline;
+}
+
+.submenu a:hover {
+    text-decoration: none;
+}
+
+#credits-menu h3 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 2em;
+    text-transform: uppercase;
+    color: #ffffff;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.credit-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+    width: 100%;
+    max-width: 600px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.2em;
+    line-height: 1.6;
+}
+
+.credit-list li {
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: left;
+    border-left: 3px solid rgba(255, 255, 255, 0.2);
+    padding-left: 8px;
+    transition: border-color 0.3s, padding-left 0.4s, border-left-width 0.4s;
+}
+
+.credit-list li:hover {
+    padding-left: 12px;
+    border-left: 5px solid rgba(255, 255, 255, 0.5);
+}
+
+.menu button {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2em;
+    font-weight: 600;
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 6px;
+    padding: 14px 24px;
+    margin: 10px 0;
+    width: 240px;
+    cursor: pointer;
+    transition: background 0.3s, border-color 0.3s, transform 0.3s;
+}
+
+.menu button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.1);
+}
+
+.menu button:active {
+    transform: scale(0.9);
+}
+
+.vote-banner {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.3em;
+    font-weight: 600;
+    background: linear-gradient(270deg, #ff4f4f, #ffd700, #4fafff, #ff4f4f);
+    background-size: 600% 600%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-shift 8s ease-in-out infinite;
+    text-align: center;
+    margin-top: 10px;
+    text-shadow: 0 0 8px rgba(29, 29, 29, 0.2);
+}
+
+@keyframes gradient-shift {
+    0% {
+        background-position: 0 50%;
+        text-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+    }
+    50% {
+        background-position: 100% 50%;
+        text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+    }
+    100% {
+        background-position: 0 50%;
+        text-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+    }
+}
+
+.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.fade-in {
+    opacity: 1;
+    pointer-events: auto;
+}

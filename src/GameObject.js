@@ -268,9 +268,11 @@ export class ModelObject extends GameObject {
                 break;
         }
 
-        const localQuaternion = new CANNON.Quaternion().copy(this.quaternion);
+        const worldQuat = new THREE.Quaternion();
+        this.mesh.getWorldQuaternion(worldQuat);
+        const cannonQuat = new CANNON.Quaternion(worldQuat.x, worldQuat.y, worldQuat.z, worldQuat.w);
 
-        this.body.addShape(this.shape, CANNON.Vec3.zero, localQuaternion);
+        this.body.addShape(this.shape, CANNON.Vec3.zero, cannonQuat);
         this.body.updateBoundingRadius();
         this.body.aabbNeedsUpdate = true;
     }

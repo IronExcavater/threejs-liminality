@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {ModelObject} from './GameObject.js';
 import {getModel, getSound} from './resources.js';
-import {addUpdatable, ambientSound, audioListener, ids, player, scene} from './app.js';
+import {addUpdatable, ambientSound, audioListener, ids, player, scene, weepingAngels} from './app.js';
 import {randomRange} from './utils.js';
 import {fadeIn, fadeOut} from './transition.js';
 
@@ -21,6 +21,9 @@ export default class WeepingAngel extends ModelObject {
             shapeType: 'cylinder',
             mass: 1000,
         });
+
+        this.lastScreamTime = -Infinity;
+        this.screamCooldown = 15;
 
         this.state = 'inactive';
         this.isMoving = false;
@@ -79,6 +82,16 @@ export default class WeepingAngel extends ModelObject {
         this.position.copy(this.body.position.toThree());
         this.isMoving = false;
 
+        if (distance > this.teleportRadiusRange[1] + 10) {
+            console.log("Angel is too far. Teleporting...");
+            this.teleportNearby();
+        }
+
+        if (this.isBeingWatchedByAnotherAngel()) {
+            this.velocity.set(0, 0, 0);
+            return;
+        }
+
         switch (this.state) {
             case 'inactive':
                 this.velocity = new THREE.Vector3();
@@ -108,8 +121,12 @@ export default class WeepingAngel extends ModelObject {
                 else {
                     this.velocity = new THREE.Vector3();
                     if (this.hasMoved) {
-                        this.sound.setBuffer(getSound('weepingAngel'));
-                        this.sound.play();
+                        const now = performance.now() / 1000;
+                        if (now - this.lastScreamTime > this.screamCooldown) {
+                            this.sound.setBuffer(getSound('weepingAngel'));
+                            this.sound.play();
+                            this.lastScreamTime = now;
+                        }
                         this.hasMoved = false;
                     }
                 }
@@ -119,11 +136,25 @@ export default class WeepingAngel extends ModelObject {
                 }
                 break;
         }
+    }
 
-        if (distance > this.teleportRadiusRange[1] + 10) {
-            console.log("Angel is too far. Teleporting...");
-            this.teleportNearby();
+    isBeingWatchedByAnotherAngel() {
+        for (const other of weepingAngels) {
+            if (other === this) continue;
+
+            if (other.state !== 'active') continue;
+
+            const toAngel = new THREE.Vector3().subVectors(this.position, other.position).normalize();
+            const forward = new THREE.Vector3(0, 0, -1)
+                .applyQuaternion(other.getWorldQuaternion(new THREE.Quaternion()))
+                .normalize();
+
+            const dot = toAngel.dot(forward);
+            const distance = this.position.distanceTo(other.position);
+
+            if (dot >= 0.3 && distance < 4) return true;
         }
+        return false;
     }
 
     isOccluded() {

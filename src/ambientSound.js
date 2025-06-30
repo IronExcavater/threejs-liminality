@@ -91,7 +91,7 @@ class AmbientSound {
                 if (this.isLooping) this.queueNext(); // queue after sound ends
             };
 
-            this.positionalSound.play();
+            if (this.isLooping) this.positionalSound.play();
         }, delay);
     }
 }

@@ -4,10 +4,66 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Liminality</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
     <link rel = "stylesheet" href = "styles/scanline.css">
     <link rel = "stylesheet" href = "styles/reticle.css">
   </head>
-  <body style="margin:0; background-color:black; overflow:hidden;">
+  <body style="margin:0; overflow:hidden;">
+    <div class="menu" id="pause-menu">
+      <div class="header-container">
+        <h2>Liminality</h2>
+        <p class="vote-banner">Vote Liminality for <strong>Best Computer Graphics</strong> project!</p>
+      </div>
+      <div class="submenu-container">
+        <div id="main-menu" class="submenu">
+          <button id="resume-button">Resume</button>
+          <button id="restart-button">Regenerate</button>
+          <button id="instructions-button">Instructions</button>
+          <button id="credits-button">Credits</button>
+        </div>
+
+        <div id="instructions-menu" class="submenu">
+          <br>
+          <h3>About</h3>
+          <p>Liminality is a <strong>first-person psychological</strong> horror game inspired by the Backrooms. Set in a procedurally
+            generated, backrooms-like maze, navigate the eerie hallways haunted by flickering lights and unsettling
+            sounds. Restore power by activating five power breakers, unlocking the passageway to escape this reality.
+            But beware — statue-like entities stalk you silently, moving only when unseen, seeking to keep you suspended
+            in the in-between for eternity.</p>
+          <h3>Controls</h3>
+          <p>Use <code>WASD</code> to move, <code>Mouse</code> to look.<br>
+            Press <code>Escape</code> to pause, <code>Space</code> to jump.<br>
+            Press <code>E</code> to interact with highlighted objects.<br>
+            Press <code>F</code> to toggle flashlight.<br>
+            Press <code>` (tilda)</code> to open developer console.<br>
+          </p>
+          <button class="back-button">Back</button>
+          <br>
+        </div>
+
+        <div id="credits-menu" class="submenu">
+          <br>
+          <h3>Developed by <strong>Group 49</strong></h3>
+          <ul class="credit-list">
+            <li><strong>Niclas Rogulski</strong> – Lead, Chunking, Lighting</li>
+            <li><strong>Sern Wei</strong> – Maze Generation</li>
+            <li><strong>Cyrus Galan</strong> – Art, Shaders</li>
+          </ul>
+          <p>Created for
+            <a href="https://coursehandbook.uts.edu.au/subject/2025/31264" target="_blank" rel="noopener noreferrer">31264 Computer Graphics</a>
+            subject.</p>
+          <p>Check out the source code on
+            <a href="https://github.com/IronExcavater/threejs-liminality" target="_blank" rel="noopener noreferrer">GitHub</a>.
+          </p>
+          <button class="back-button">Back</button>
+          <br>
+        </div>
+      </div>
+    </div>
     <script type="module" src="./main.js"></script>
     <div class = "reticle">+</div>
     <div class = "scanlines"></div>

@@ -135,7 +135,6 @@ class Maze {
 
         this.bindEntities();
        // this.buildTestFurniture(); works. Now to integrate random spawning of furniture // NEW CODE
-
     }
 
     getCell(x, y) {
@@ -346,20 +345,28 @@ class Maze {
             const placed = this.entities.get(type);
             if (placed.length >= count) break;
 
-            const found = this.findCellNear(cell, tolerance, cellConditions);
+            const isFurniture = type === this.entityTypes.get('furniture');
+
+            const found = this.findCellNear(cell, tolerance, cellConditions, !isFurniture);
             if (found) {
                 // Special logic for furniture // NEW CODE
-                if (type === this.entityTypes.get('furniture')) {
-                    const modelName = furnitureModels[Math.floor(Math.random() * furnitureModels.length)];
-                    let posY = (modelName.startsWith('table')) ? 0.4 : 0.6; // fixes height to match floor.
-                    let rotY = Math.random() * Math.PI * 2;
-                    placed.push({
-                        ...found,
-                        modelName,
-                        posY,
-                        rotY
-                    });
-                    console.log(`Placed entity of type ${type} (${modelName}) at (${found.cell.x}, ${found.cell.y})`);
+                if (isFurniture) {
+                    const origin = Math.floor(this.config.mapSize / 2);
+                    const halfSize = Math.floor(this.config.startingRoomSize / 2);
+
+                    if ((origin - halfSize < found.cell.x || found.cell.x < origin + halfSize) &&
+                        (origin - halfSize < found.cell.y || found.cell.y < origin + halfSize)) {
+                        const modelName = furnitureModels[Math.floor(Math.random() * furnitureModels.length)];
+                        let posY = (modelName.startsWith('table')) ? 0.3 : 0.4; // fixes height to match floor.
+                        let rotY = Math.random() * Math.PI * 2;
+                        placed.push({
+                            ...found,
+                            modelName,
+                            posY,
+                            rotY
+                        });
+                        console.log(`Placed entity of type ${type} (${modelName}) at (${found.cell.x}, ${found.cell.y})`);
+                    }
 
                 } else {
                     placed.push(found);
@@ -378,10 +385,10 @@ class Maze {
         }
     }
 
-    findCellNear(cell, tolerance, cellConditions = {onWall: true}) {
+    findCellNear(cell, tolerance, cellConditions = {onWall: true}, checkZero = true) {
         for (let r = 0; r < 100; r++) {
-            const x = r === 0 ? cell.x : Math.floor(cell.x + randomRange(-tolerance, tolerance));
-            const y = r === 0 ? cell.y :Math.floor(cell.y + randomRange(-tolerance, tolerance));
+            const x = r === 0 && checkZero ? cell.x : Math.floor(cell.x + randomRange(-tolerance, tolerance));
+            const y = r === 0 && checkZero ? cell.y :Math.floor(cell.y + randomRange(-tolerance, tolerance));
 
             if (!this.hasCell(x, y)) continue;
 
@@ -567,7 +574,7 @@ class Maze {
                                     cell: item.cell,
                                     modelName: item.modelName,
                                     position: pos,
-                                    scale: new THREE.Vector3(1.2, 1.2, 1.2),
+                                    scale: new THREE.Vector3(0.8, 0.8, 0.8),
                                     rotation: rot
                                 });
                         }

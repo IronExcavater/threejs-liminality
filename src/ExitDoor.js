@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {ModelObject} from './GameObject.js';
 import {getModel, getSound} from './resources.js';
 import {addUpdatable, audioListener, canEscape, ids, reload} from './app.js';
-import {fadeIn} from "./transition.js";
+import {fadeIn, fadeOut} from "./transition.js";
 
 class ExitDoor extends ModelObject {
     constructor({
@@ -76,6 +76,7 @@ class ExitDoor extends ModelObject {
             text: 'You\'ve Escaped',
             onComplete: () => {
                 reload();
+                fadeOut({});
             }
         });
     }

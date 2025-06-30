@@ -74,9 +74,10 @@ export default class AmbientLighting {
         const delay = randomRange(this.delayRange[0], this.delayRange[1]);
 
         setTimeout(() => {
+            if (!this.isLooping) return;
             this.triggerLightingEvent(this.events[randomRange(0, this.events.length-1)], duration);
             setTimeout(() => {
-                this.queueNext();
+                if (this.isLooping) this.queueNext();
             }, duration);
         }, delay);
     }

@@ -21,14 +21,14 @@ export default class Furniture extends ModelObject {
         super({
             model: getFurniture(modelName),
             scale: scale,
+            shapeType: 'cylinder',
             position: position,
             rotation: rotation,
-            interactRadius: 0.5,
         });
 
         this.cell = cell;
-        this.interactCallback = this.onInteract.bind(this);
-        this.canInteract = true;        
+        //this.interactCallback = this.onInteract.bind(this);
+        //this.canInteract = true;
         console.log("Furniture instantiated", modelName, position);
     } 
 
