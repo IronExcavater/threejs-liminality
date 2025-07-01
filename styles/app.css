@@ -7,3 +7,24 @@ body {
     background-color:white;
     overflow: hidden;
 }
+
+/* Scrollbar track */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Scrollbar background */
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Scrollbar thumb (the handle) */
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+}
+
+/* On hover */
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}

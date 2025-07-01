@@ -11,7 +11,7 @@ export default class WeepingAngel extends ModelObject {
         position = new THREE.Vector3(),
         rotation = new THREE.Euler(),
         teleportRadiusRange = [10, 20],
-        moveSpeed = 100,
+        moveSpeed = 500,
     }) {
         super({
             model: getModel('weepingAngel'),
