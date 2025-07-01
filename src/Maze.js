@@ -353,9 +353,10 @@ class Maze {
                 if (isFurniture) {
                     const origin = Math.floor(this.config.mapSize / 2);
                     const halfSize = Math.floor(this.config.startingRoomSize / 2);
-
-                    if ((origin - halfSize < found.cell.x || found.cell.x < origin + halfSize) &&
-                        (origin - halfSize < found.cell.y || found.cell.y < origin + halfSize)) {
+                    const lowerBound = origin - halfSize;
+                    const upperBound = origin + halfSize;
+                    if ((lowerBound > found.cell.x || found.cell.x > upperBound) ||
+                        (lowerBound > found.cell.y || found.cell.y > upperBound)) {
                         const modelName = furnitureModels[Math.floor(Math.random() * furnitureModels.length)];
                         let posY = (modelName.startsWith('table')) ? 0.3 : 0.4; // fixes height to match floor.
                         let rotY = Math.random() * Math.PI * 2;

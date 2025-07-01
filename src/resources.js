@@ -5,6 +5,7 @@ const textureLoader = new THREE.TextureLoader();
 const audioLoader = new THREE.AudioLoader();
 const gltfLoader = new GLTFLoader();
 
+const icons = {}  // key: name, value: svg html
 const textures = {}; // key: name, value: { albedo, normal, roughness }
 const materials = {}; // key: name, value: material
 const sounds = {}; // key: name, value: audioBuffer
@@ -69,6 +70,14 @@ function loadModel(name, path) {
     });
 }
 
+async function loadIcon(name, path) {
+    const res = await fetch(path);
+    if (!res.ok) throw new Error(`Failed to load ${path}`);
+    const svg = await res.text();
+    icons[name] = svg;
+    return svg;
+}
+
 export function createMaterial(name, textureSetName) {
     const tex = textures[textureSetName];
     if (!tex) {
@@ -107,6 +116,10 @@ export function getModel(name) {
     };
 }
 
+export function getIcon(name) {
+    return icons[name] || null;
+}
+
 export function getFurniture(modelName) { // NEW CODE
     const furniture = models['furniture'];
     if (!furniture || !furniture.scene) return null;
@@ -141,6 +154,11 @@ export const preloadResources = (async () => {
     createMaterial('paint', 'paint');
 
     await Promise.all([
+        loadIcon('fullscreen', 'assets/icons/fullscreen-max.svg'),
+        loadIcon('minimize', 'assets/icons/fullscreen-min.svg'),
+        loadIcon('mute', 'assets/icons/sound-min.svg'),
+        loadIcon('unmute', 'assets/icons/sound-max.svg'),
+
         loadSound('step', [
             'assets/sounds/step1.wav',
             'assets/sounds/step2.wav',

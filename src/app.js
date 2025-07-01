@@ -9,7 +9,7 @@ import {updateTweens} from './tween.js';
 import {updateConsole} from './console.js';
 import Flashlight from './Flashlight.js';
 import WeepingAngel from './WeepingAngel.js';
-import {preloadResources} from './resources.js';
+import {getIcon, preloadResources} from './resources.js';
 import {fadeIn, fadeOut} from './transition.js';
 import AmbientSound from './ambientSound.js';
 import AmbientLighting from './ambientLighting.js';
@@ -154,6 +154,8 @@ const flashlight = new Flashlight({
     rotation: new THREE.Euler(),
 });
 
+let isMuted = localStorage.getItem('muted') === 'true';
+
 const masterGain = audioListener.context.createGain();
 masterGain.connect(audioListener.context.destination);
 audioListener.gain.disconnect(); // Remove default connection
@@ -178,6 +180,8 @@ function windowResize() {
 
 isLoading = false;
 let isPaused = true;
+let isFullscreen = false;
+
 const pauseMenu = document.getElementById('pause-menu');
 const resumeButton = document.getElementById('resume-button');
 const restartButton = document.getElementById('restart-button');
@@ -192,13 +196,43 @@ const instructionsButton = document.getElementById('instructions-button');
 const creditsButton = document.getElementById('credits-button');
 const backButtons = document.querySelectorAll('.back-button');
 
+const fullscreenButton = document.getElementById('fullscreen-btn');
+const muteButton = document.getElementById('mute-btn');
+
+fullscreenButton.innerHTML = getIcon('fullscreen');
+muteButton.innerHTML = isMuted ? getIcon('mute') : getIcon('unmute');
+audioMaster.gain.value = isMuted ? 0 : 1;
+
+document.addEventListener('fullscreenchange', () => {
+    isFullscreen = !!document.fullscreenElement;
+    fullscreenButton.innerHTML = document.fullscreenElement ? getIcon('minimize') : getIcon('fullscreen');
+});
+
+fullscreenButton.addEventListener('click', () => {
+    const el = document.documentElement;
+    if (!document.fullscreenElement) {
+        el.requestFullscreen().catch(err => {
+            console.warn(`Error trying to enter fullscreen: ${err.message}`);
+        });
+    } else document.exitFullscreen();
+});
+
+muteButton.addEventListener('click', () => {
+    isMuted = !isMuted;
+    localStorage.setItem('muted', isMuted ? 'true' : 'false');
+
+    muteButton.innerHTML = isMuted ? getIcon('mute') : getIcon('unmute');
+
+    if (!isPaused) fadeAudio(isMuted ? 0 : 1, 1.0);
+});
+
 player.lookControls.addEventListener('lock', _ => {
     isPaused = false;
     pauseMenu.classList.remove('fade-in');
     pauseMenu.classList.add('fade-out');
     ambientSound.startLoop();
     ambientLighting.startLoop();
-    fadeAudio(1, 1.0);
+    if (!isMuted) fadeAudio(1, 1.0);
 });
 
 player.lookControls.addEventListener('unlock', _ => {
@@ -218,6 +252,7 @@ resumeButton.addEventListener('click', () => {
 
     setTimeout(() => {
         player.lookControls.lock();
+        resumeButton.innerText = 'Resume'
         isLoading = false;
     }, 1000);
 });
@@ -239,10 +274,38 @@ restartButton.addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', e => {
-    if (isPaused && e.key === 'Escape') {
-        if (currentMenu !== 'main') {
+    const key = e.key.toLowerCase();
+
+    if (key === 'escape') {
+        if (isPaused && currentMenu !== 'main') {
             switchMenu('main');
         }
+    }
+
+    if (key === 'p') {
+        if (isPaused) player.lookControls.lock();
+        else player.lookControls.unlock();
+    }
+
+    if (key === 'f') {
+        // Toggle fullscreen
+        const el = document.documentElement;
+        if (!document.fullscreenElement) {
+            el.requestFullscreen().catch(err =>
+                console.warn(`Error trying to enter fullscreen: ${err.message}`)
+            );
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    if (key === 'm') {
+        // Toggle mute
+        isMuted = !isMuted;
+        localStorage.setItem('muted', isMuted ? 'true' : 'false');
+        muteButton.innerHTML = isMuted ? getIcon('mute') : getIcon('unmute');
+
+        if (!isPaused) fadeAudio(isMuted ? 0 : 1, 1.0);
     }
 });
 

@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 
     <link rel = "stylesheet" href = "styles/scanline.css">
     <link rel = "stylesheet" href = "styles/reticle.css">
@@ -16,7 +17,7 @@
     <div class="menu hidden" id="pause-menu">
       <div class="header-container">
         <div class="title-wrapper">
-          <h2>Liminality</h2>
+          <h2 class="flicker">Liminality</h2>
           <h4>Computer Graphics</h4>
         </div>
         <br>
@@ -25,7 +26,7 @@
       <div class="submenu-container">
         <div id="main-menu" class="submenu">
           <br>
-          <button id="resume-button">Resume</button>
+          <button id="resume-button">Start</button>
           <button id="restart-button">Regenerate</button>
           <button id="instructions-button">Instructions</button>
           <button id="credits-button">Credits</button>
@@ -69,6 +70,10 @@
           <br>
         </div>
       </div>
+    </div>
+    <div id="ui-buttons">
+      <button id="fullscreen-btn" title="Toggle Fullscreen"></button>
+      <button id="mute-btn" title="Toggle Mute"></button>
     </div>
     <script type="module" src="./main.js"></script>
     <div class = "reticle">+</div>

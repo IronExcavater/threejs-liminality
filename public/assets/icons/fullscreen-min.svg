@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M 20 16 L 18 16 C 16.895 16 16 16.895 16 18 L 16 20" stroke-linecap="round" stroke-linejoin="round" style="stroke-width: 3px; stroke: rgb(255, 255, 255);"/>
+  <path d="M20 16H18C16.8954 16 16 16.8954 16 18V20" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 4 8 L 6 8 C 7.105 8 8 7.105 8 6 L 8 4" stroke-linecap="round" stroke-linejoin="round" style="stroke-width: 3px; stroke: rgb(255, 255, 255);"/>
+  <path d="M4 8H6C7.10457 8 8 7.10457 8 6V4" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 4 16 L 6 16 C 7.105 16 8 16.895 8 18 L 8 20" stroke-linecap="round" stroke-linejoin="round" style="stroke-width: 3px; stroke: rgb(255, 255, 255);"/>
+  <path d="M4 16H6C7.10457 16 8 16.8954 8 18V20" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 20 8 L 18 8 C 16.895 8 16 7.105 16 6 L 16 4" stroke-linecap="round" stroke-linejoin="round" style="stroke: rgb(255, 255, 255); stroke-width: 3px;"/>
+  <path d="M20 8H18C16.8954 8 16 7.10457 16 6V4" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
