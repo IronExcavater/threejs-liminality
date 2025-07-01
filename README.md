@@ -9,13 +9,15 @@ you silently, moving only when unseen, seeking to keep you suspended in the in-b
 
 ## 🎮 Controls
 
-|      Key       | Action                               |
-|:--------------:|--------------------------------------|
-|    **WASD**    | Move                                 |
-|   **Mouse**    | Look around                          |
-|     **E**      | Interact with objects                |
-|     **F**      | Toggle flashlight                    |
-| **\`** (tilda) | Open developer console               |
+|      Key       | Action                 |
+|:--------------:|------------------------|
+|    **WASD**    | Move                   |
+|   **Mouse**    | Look around            |
+|   **Space**    | Jump                   |
+|   **Escape**   | Pause the game         |
+|     **E**      | Interact with objects  |
+|     **F**      | Toggle flashlight      |
+| **\`** (tilda) | Open developer console |
 
 ## 🧩 Gameplay Features
 

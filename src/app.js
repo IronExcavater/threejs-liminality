@@ -229,9 +229,11 @@ restartButton.addEventListener('click', () => {
         onComplete: () => {
             reload();
             maze.update();
-            fadeOut({
-                onComplete: () => isLoading = false
-            });
+            setTimeout(() => {
+                fadeOut({
+                    onComplete: () => isLoading = false
+                });
+            }, 2000)
         }
     });
 });
@@ -243,6 +245,8 @@ document.addEventListener('keydown', e => {
         }
     }
 });
+
+pauseMenu.classList.remove('hidden');
 
 function switchMenu(to) {
     const menus = {
