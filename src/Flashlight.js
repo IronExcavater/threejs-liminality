@@ -96,7 +96,7 @@ class Flashlight extends ModelObject {
 
         if (!this.equipped) return;
 
-        if (getKey('KeyF', true)) {
+        if (getKey('KeyR', true)) {
             this.enabled = !this.enabled;
             this.sound.setBuffer(getSound('flashlightClick'));
             this.sound.play();
